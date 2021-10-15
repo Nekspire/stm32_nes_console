@@ -30,6 +30,7 @@
 #include "nes_controller/nes_controller.h"
 #include "ili9486.h"
 #include <stdio.h>
+#include "fatfs.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,23 +100,58 @@ int main(void)
   const char selector_type[] = ">";
   const int16_t selector_ylimit = (int16_t) (BSP_LCD_GetYSize() - Font16.Height);
 
-  char path[30]; NES_Controller_Button button; Point selector_position;
+  char path[30] = "";
+  char message[30] = "";
+  NES_Controller_Button button;
+  Point selector_position;
+  FATFS fs;
+  FIL file;
+  DIR dir;
+  FILINFO filinfo;
+  BYTE opt = 0;
+  FRESULT fr_mount, fr_result = FR_OK;
 
   NES_Controller_Status controller_status = nes_controller_init(&hi2c1);
 
   BSP_LCD_Init();
-
   BSP_LCD_Clear(LCD_COLOR_BLACK);
-
   BSP_LCD_SetFont(&Font16);
   BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
 
-  sprintf(path, "%s", "disc>nes>roms");
-  BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) path, LEFT_MODE);
+  fr_mount = f_mount(&fs, path, 0);
 
-  BSP_LCD_DisplayStringAt(SELECTOR_X, 2 * Font16.Height, (uint8_t *) &selector_type, LEFT_MODE);
-  selector_position.X = (int16_t) SELECTOR_X; selector_position.Y =  (int16_t) (2 * Font16.Height);
+  if (fr_mount == FR_OK) {
+    fr_result = f_getcwd(path, 30);
+    f_close(&file);
+    if (fr_result == FR_OK) {
+      BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) "DISC:", LEFT_MODE);
+      BSP_LCD_DisplayStringAt((sizeof("DISC:") - 1) * Font16.Width, 0, (uint8_t *) path, LEFT_MODE);
 
+      uint32_t index = 0;
+      fr_result = f_findfirst(&dir, &filinfo, path, "*");
+
+      if (fr_result == FR_OK) {
+        BSP_LCD_DisplayStringAt(SELECTOR_X, 2 * Font16.Height, (uint8_t *) &selector_type, LEFT_MODE);
+        selector_position.X = (int16_t) SELECTOR_X; selector_position.Y =  (int16_t) (2 * Font16.Height);
+      }
+
+      while (fr_result == FR_OK && filinfo.fname[0]) {
+        // todo: lcd size limitation check
+        BSP_LCD_DisplayStringAt(RECORD_X, (2 + index) * Font16.Height, (uint8_t *) filinfo.fname, LEFT_MODE);
+        index += 1;
+        fr_result = f_findnext(&dir, &filinfo);
+      }
+
+    } else {
+      sprintf(message, "%s", "disc: open failed");
+      BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) message, LEFT_MODE);
+    }
+  } else {
+    sprintf(message, "%s", "disc: not mounted");
+    BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) message, LEFT_MODE);
+  }
+
+  /*
   BSP_LCD_DisplayStringAt(RECORD_X, 2 * Font16.Height, (uint8_t *) "dir", LEFT_MODE);
   BSP_LCD_DisplayStringAt(RECORD_X, 3 * Font16.Height, (uint8_t *) "first_file.nes", LEFT_MODE);
   BSP_LCD_DisplayStringAt(RECORD_X, 4 * Font16.Height, (uint8_t *) "file2.nes", LEFT_MODE);
@@ -133,7 +169,7 @@ int main(void)
   BSP_LCD_DisplayStringAt(RECORD_X, 16 * Font16.Height, (uint8_t *) "file14.nes", LEFT_MODE);
   BSP_LCD_DisplayStringAt(RECORD_X, 17 * Font16.Height, (uint8_t *) "file15.nes", LEFT_MODE);
   BSP_LCD_DisplayStringAt(RECORD_X, 18 * Font16.Height, (uint8_t *) "File16.nes", LEFT_MODE);
-  BSP_LCD_DisplayStringAt(RECORD_X, BSP_LCD_GetYSize() - Font16.Height, (uint8_t *) "last_file.nes", LEFT_MODE);
+  BSP_LCD_DisplayStringAt(RECORD_X, BSP_LCD_GetYSize() - Font16.Height, (uint8_t *) "last_file.nes", LEFT_MODE); */
 
   /* USER CODE END 2 */
 
