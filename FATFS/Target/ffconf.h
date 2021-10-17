@@ -163,7 +163,7 @@
 /* _STR_VOLUME_ID switches string support of volume ID.
 /  When _STR_VOLUME_ID is set to 1, also pre-defined strings can be used as drive
 /  number in the path name. _VOLUME_STRS defines the drive ID strings for each
-/  logical drives. Number of items must be equal to _VOLUMES. Valid characters for
+/  logical drives. Number of item must be equal to _VOLUMES. Valid characters for
 /  the drive ID strings are: A-Z and 0-9. */
 /* USER CODE END Volumes */
 

@@ -612,7 +612,7 @@ typedef struct __DMA_HandleTypeDef
   * @brief  Writes the number of data units to be transferred on the DMA Stream.
   * @param  __HANDLE__ DMA handle
   * @param  __COUNTER__ Number of data units to be transferred (from 0 to 65535) 
-  *          Number of data items depends only on the Peripheral data format.
+  *          Number of data item depends only on the Peripheral data format.
   *            
   * @note   If Peripheral data format is Bytes: number of data units is equal 
   *         to total number of bytes to be transferred.

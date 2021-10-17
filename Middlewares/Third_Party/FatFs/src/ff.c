@@ -1090,7 +1090,7 @@ FRESULT put_fat (	/* FR_OK(0):succeeded, !=0:error */
 
 	if (clst >= 2 && clst < fs->n_fatent) {	/* Check if in valid range */
 		switch (fs->fs_type) {
-		case FS_FAT12 :	/* Bitfield items */
+		case FS_FAT12 :	/* Bitfield item */
 			bc = (UINT)clst; bc += bc / 2;
 			res = move_window(fs, fs->fatbase + (bc / SS(fs)));
 			if (res != FR_OK) break;
@@ -1104,14 +1104,14 @@ FRESULT put_fat (	/* FR_OK(0):succeeded, !=0:error */
 			fs->wflag = 1;
 			break;
 
-		case FS_FAT16 :	/* WORD aligned items */
+		case FS_FAT16 :	/* WORD aligned item */
 			res = move_window(fs, fs->fatbase + (clst / (SS(fs) / 2)));
 			if (res != FR_OK) break;
 			st_word(fs->win + clst * 2 % SS(fs), (WORD)val);
 			fs->wflag = 1;
 			break;
 
-		case FS_FAT32 :	/* DWORD aligned items */
+		case FS_FAT32 :	/* DWORD aligned item */
 #if _FS_EXFAT
 		case FS_EXFAT :
 #endif
@@ -4029,7 +4029,7 @@ FRESULT f_lseek (
 			if (cl) {
 				do {
 					/* Get a fragment */
-					tcl = cl; ncl = 0; ulen += 2;	/* Top, length and used items */
+					tcl = cl; ncl = 0; ulen += 2;	/* Top, length and used item */
 					do {
 						pcl = cl; ncl++;
 						cl = get_fat(&fp->obj, cl);
@@ -4041,7 +4041,7 @@ FRESULT f_lseek (
 					}
 				} while (cl < fs->n_fatent);	/* Repeat until end of chain */
 			}
-			*fp->cltbl = ulen;	/* Number of items used */
+			*fp->cltbl = ulen;	/* Number of item used */
 			if (ulen <= tlen) {
 				*tbl = 0;		/* Terminate table */
 			} else {
