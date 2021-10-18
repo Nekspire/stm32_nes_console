@@ -178,11 +178,12 @@ int main(void)
       }
 
       while (fr_result == FR_OK && filinfo.fname[0]) {
-        // todo: lcd size limitation check
-        BSP_LCD_DisplayStringAt(RECORD_X, (2 + item) * Font16.Height, (uint8_t *) filinfo.fname, LEFT_MODE);
-        memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
-        item += 1;
-        fr_result = f_findnext(&dir, &filinfo);
+        if (item < ITEMS) {
+          BSP_LCD_DisplayStringAt(RECORD_X, (2 + item) * Font16.Height, (uint8_t *) filinfo.fname, LEFT_MODE);
+          memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
+          item += 1;
+          fr_result = f_findnext(&dir, &filinfo);
+        } else break;
       }
 
     } else {
@@ -216,6 +217,31 @@ int main(void)
               BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
               BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) selector_type,
                                       LEFT_MODE);
+            } else {
+              // search for next item
+              fr_result = f_findnext(&dir, &filinfo);
+              if (fr_result == FR_OK && filinfo.fname[0]) {
+                // shift down items_fname[]
+                for (int i = 0; i < ITEMS - 1; i++) {
+                  BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+                  BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                                          LEFT_MODE);
+                  memcpy(items_fname[i], items_fname[i + 1], sizeof(filinfo.fname));
+                  BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+                  BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                                          LEFT_MODE);
+                }
+                // copy last item
+                BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS - 1) * Font16.Height,
+                                        (uint8_t *) items_fname[ITEMS - 1],
+                                        LEFT_MODE);
+                memcpy(items_fname[ITEMS - 1], filinfo.fname, sizeof(filinfo.fname));
+                BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS-1) *Font16.Height,
+                                        (uint8_t *) items_fname[ITEMS - 1],
+                                        LEFT_MODE);
+              }
             }
             break;
           case UP:
@@ -275,12 +301,13 @@ int main(void)
               // reset item counter
               item = 0;
               while (fr_result == FR_OK && filinfo.fname[0]) {
-                // todo: lcd size limitation check
-                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + item) * Font16.Height, (uint8_t *) filinfo.fname,
-                                        LEFT_MODE);
-                memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
-                item += 1;
-                fr_result = f_findnext(&dir, &filinfo);
+                if (item < ITEMS) {
+                  BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + item) * Font16.Height, (uint8_t *) filinfo.fname,
+                                          LEFT_MODE);
+                  memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
+                  item += 1;
+                  fr_result = f_findnext(&dir, &filinfo);
+                } else break;
               }
             }
             break;
@@ -338,14 +365,16 @@ int main(void)
               // reset item counter
               item = 0;
               while (fr_result == FR_OK && filinfo.fname[0]) {
-                // todo: lcd size limitation check
-                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + item) * Font16.Height, (uint8_t *) filinfo.fname,
-                                        LEFT_MODE);
-                memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
-                item += 1;
-                fr_result = f_findnext(&dir, &filinfo);
+                if (item < ITEMS) {
+                  BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + item) * Font16.Height, (uint8_t *) filinfo.fname,
+                                          LEFT_MODE);
+                  memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
+                  item += 1;
+                  fr_result = f_findnext(&dir, &filinfo);
+                } else break;
               }
             }
+            break;
           default:
             break;
         }
