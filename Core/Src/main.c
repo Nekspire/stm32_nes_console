@@ -222,7 +222,6 @@ int main(void)
               BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) selector_type,
                                       LEFT_MODE);
             } else {
-              // todo: add scrolling down limit
               // start searching for item from beginning (inefficient way)
               unsigned long int item_pos = 0;
               fr_result = f_findfirst(&dir, &filinfo, path, "*");
@@ -230,34 +229,34 @@ int main(void)
                 item_pos += 1;
                 while (fr_result == FR_OK && filinfo.fname[0]) {
                   if (item_pos == total_items + 1) {
+                    // increase total_times
+                    total_items += 1;
+                    // shift down items_fname[]
+                    for (int i = 0; i < ITEMS - 1; i++) {
+                      BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                                              LEFT_MODE);
+                      memcpy(items_fname[i], items_fname[i + 1], sizeof(filinfo.fname));
+                      BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                                              LEFT_MODE);
+                    }
+                    // copy last item
+                    BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+                    BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS - 1) * Font16.Height,
+                                            (uint8_t *) items_fname[ITEMS - 1],
+                                            LEFT_MODE);
+                    memcpy(items_fname[ITEMS - 1], filinfo.fname, sizeof(filinfo.fname));
+                    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+                    BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS-1) *Font16.Height,
+                                            (uint8_t *) items_fname[ITEMS - 1],
+                                            LEFT_MODE);
                     break;
                   }
                   fr_result = f_findnext(&dir, &filinfo);
                   item_pos += 1;
                 }
               }
-              // increase total_times
-              total_items += 1;
-              // shift down items_fname[]
-              for (int i = 0; i < ITEMS - 1; i++) {
-                BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
-                                        LEFT_MODE);
-                memcpy(items_fname[i], items_fname[i + 1], sizeof(filinfo.fname));
-                BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
-                                        LEFT_MODE);
-              }
-              // copy last item
-              BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-              BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS - 1) * Font16.Height,
-                                      (uint8_t *) items_fname[ITEMS - 1],
-                                      LEFT_MODE);
-              memcpy(items_fname[ITEMS - 1], filinfo.fname, sizeof(filinfo.fname));
-              BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-              BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS-1) *Font16.Height,
-                                      (uint8_t *) items_fname[ITEMS - 1],
-                                      LEFT_MODE);
             }
             break;
           case UP:
@@ -272,7 +271,6 @@ int main(void)
               BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) selector_type,
                                       LEFT_MODE);
             } else {
-              // todo: add scrolling up limit
               // start searching for item from beginning (inefficient way)
               unsigned long int item_pos = 0;
               fr_result = f_findfirst(&dir, &filinfo, path, "*");
@@ -280,34 +278,34 @@ int main(void)
                 item_pos += 1;
                 while (fr_result == FR_OK && filinfo.fname[0]) {
                   if (item_pos == total_items - ITEMS) {
+                    // decrease total items
+                    total_items -= 1;
+                    // shift up items_fname[]
+                    for (int i = ITEMS - 1; i > 0; i--) {
+                      BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                                              LEFT_MODE);
+                      memcpy(items_fname[i], items_fname[i - 1], sizeof(filinfo.fname));
+                      BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                                              LEFT_MODE);
+                    }
+                    // copy first item
+                    BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+                    BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + 0) * Font16.Height,
+                                            (uint8_t *) items_fname[0],
+                                            LEFT_MODE);
+                    memcpy(items_fname[0], filinfo.fname, sizeof(filinfo.fname));
+                    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+                    BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + 0) * Font16.Height,
+                                            (uint8_t *) items_fname[0],
+                                            LEFT_MODE);
                     break;
                   }
                   fr_result = f_findnext(&dir, &filinfo);
                   item_pos += 1;
                 }
               }
-              // decrease total items
-              total_items -= 1;
-              // shift up items_fname[]
-              for (int i = ITEMS - 1; i > 0; i--) {
-                BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
-                                        LEFT_MODE);
-                memcpy(items_fname[i], items_fname[i - 1], sizeof(filinfo.fname));
-                BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
-                                        LEFT_MODE);
-              }
-              // copy first item
-              BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-              BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + 0) * Font16.Height,
-                                      (uint8_t *) items_fname[0],
-                                      LEFT_MODE);
-              memcpy(items_fname[0], filinfo.fname, sizeof(filinfo.fname));
-              BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-              BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + 0) * Font16.Height,
-                                      (uint8_t *) items_fname[0],
-                                      LEFT_MODE);
             }
             break;
           case A:
