@@ -172,7 +172,7 @@ int main(void)
 
       fr_result = f_findfirst(&dir, &filinfo, path, "*");
 
-      if (fr_result == FR_OK) {
+      if (fr_result == FR_OK && filinfo.fname[0]) {
         BSP_LCD_DisplayStringAt(SELECTOR_X, 2 * Font16.Height, (uint8_t *) &selector_type, LEFT_MODE);
         selector_pixel_position.X = (int16_t) SELECTOR_X; selector_pixel_position.Y =  (int16_t) (2 * Font16.Height);
       }
@@ -200,7 +200,7 @@ int main(void)
   while (1)
   {
     if (controller_status == NES_CONTROLLER_OK) {
-      HAL_Delay(100);
+      HAL_Delay(75);
       bool state = nes_match_button(nes_controller_read_code(&hi2c1), &button);
 
       if (state == true) {
@@ -258,10 +258,9 @@ int main(void)
                                         LEFT_MODE);
               }
               // find first item in path
-              // todo: check FR_OK on empty dir
               fr_result = f_findfirst(&dir, &filinfo, path, "*");
               // display item selector if there are items in directory
-              if (fr_result == FR_OK) {
+              if (fr_result == FR_OK && filinfo.fname[0]) {
                 // set initial selector position
                 selector_position = SELECTOR_POS_1;
                 // display selector on screen
@@ -321,9 +320,10 @@ int main(void)
                                         LEFT_MODE);
               }
               // find first item in path
+              f_closedir(&dir);
               fr_result = f_findfirst(&dir, &filinfo, path, "*");
               // display item selector if there are items in directory
-              if (fr_result == FR_OK) {
+              if (fr_result == FR_OK && filinfo.fname[0]) {
                 // set initial selector position
                 selector_position = SELECTOR_POS_1;
                 // display selector on screen
