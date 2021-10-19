@@ -28,11 +28,7 @@
 /* USER CODE BEGIN Includes */
 #include "Lcd/stm32_adafruit_lcd.h"
 #include "nes_controller/nes_controller.h"
-#include "ili9486.h"
-#include <stdio.h>
-#include <memory.h>
-#include <ctype.h>
-#include "fatfs.h"
+#include "file_viewer/file_viewer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,58 +43,18 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
-#define SELECTOR_POS_1  2
-#define SELECTOR_X      0
-#define RECORD_X        (Font16.Width + 1)
-#define ITEMS           18
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-int item = 0;
-char items_fname[ITEMS][13];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-size_t strlprecat( char* dst, const char * src, size_t size) {
-  size_t dstlen = strnlen( dst, size);
-  size_t srclen = strlen( src);
-  size_t srcChars = srclen;
-  size_t dstChars = dstlen;
 
-  if (0 == size) {
-    /* we can't write anything into the dst buffer */
-    /*  -- bail out                                */
-
-    return( srclen + dstlen);
-  }
-
-  /* determine how much space we need to add to front of dst */
-
-  if (srcChars >= size) {
-    /* we can't even fit all of src into dst */
-    srcChars = size - 1;
-  }
-
-  /* now figure out how many of dst's characters will fit in the remaining buffer */
-  if ((srcChars + dstChars) >= size) {
-    dstChars = size - srcChars - 1;
-  }
-
-  /* move dst to new location, truncating if necessary */
-  memmove( dst+srcChars, dst, dstChars);
-
-  /* copy src into the spot we just made for it */
-  memcpy( dst, src, srcChars);
-
-  /* make sure the whole thing is terminated properly */
-  dst[srcChars + dstChars] = '\0';
-
-  return( srclen + dstlen);
-}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -138,309 +94,54 @@ int main(void)
   MX_FATFS_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  const char selector_type[] = ">";
-  const int16_t selector_ylimit = (int16_t) (BSP_LCD_GetYSize() - Font16.Height);
-
-  char path[30] = "";
-  char message[30] = "";
+  FATFS fs; DIR dir; FILINFO filinfo;
   NES_Controller_Button button;
-  Point selector_pixel_position;
-  unsigned int selector_position = SELECTOR_POS_1;
-  unsigned int slash = 1;
-  long unsigned int total_items = 0;
-  FATFS fs;
-  // FIL file;
-  DIR dir;
-  FILINFO filinfo;
-  // BYTE opt = 0;
-  FRESULT fr_mount, fr_result;
 
-  NES_Controller_Status controller_status = nes_controller_init(&hi2c1);
+  FileViewer fileViewer;
+  fileViewer.fs = &fs;
+  fileViewer.dir = &dir;
+  fileViewer.filinfo = &filinfo;
+  fileViewer.display_properties.TextColor = LCD_COLOR_WHITE;
+  fileViewer.display_properties.BackColor = LCD_COLOR_BLACK;
+  fileViewer.display_properties.pFont = &Font16;
 
-  BSP_LCD_Init();
-  BSP_LCD_Clear(LCD_COLOR_BLACK);
-  BSP_LCD_SetFont(&Font16);
-  BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+  if(FileViewer_init(&fileViewer) == true) {
+    NES_Controller_Status controller_status = nes_controller_init(&hi2c1);
 
-  fr_mount = f_mount(&fs, path, 0);
+    while (1) {
+      if (controller_status == NES_CONTROLLER_OK) {
+        HAL_Delay(75);
 
-  if (fr_mount == FR_OK) {
-    fr_result = f_getcwd(path, sizeof(path));
+        bool state = nes_match_button(nes_controller_read_code(&hi2c1), &button);
 
-    if (fr_result == FR_OK) {
-      BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) DRIVE, LEFT_MODE);
-      BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * Font16.Width, 0, (uint8_t *) path, LEFT_MODE);
-
-      fr_result = f_findfirst(&dir, &filinfo, path, "*");
-
-      if (fr_result == FR_OK && filinfo.fname[0]) {
-        BSP_LCD_DisplayStringAt(SELECTOR_X, 2 * Font16.Height, (uint8_t *) &selector_type, LEFT_MODE);
-        selector_pixel_position.X = (int16_t) SELECTOR_X; selector_pixel_position.Y =  (int16_t) (2 * Font16.Height);
-      }
-
-      while (fr_result == FR_OK && filinfo.fname[0]) {
-        if (item < ITEMS) {
-          BSP_LCD_DisplayStringAt(RECORD_X, (2 + item) * Font16.Height, (uint8_t *) filinfo.fname, LEFT_MODE);
-          memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
-          item += 1;
-          fr_result = f_findnext(&dir, &filinfo);
-        } else {
-          total_items = item;
-          break;
+        if (state == true) {
+          switch (button) {
+            case DOWN:
+              FileViewer_scroll_down(&fileViewer);
+              break;
+            case UP:
+              FileViewer_scroll_up(&fileViewer);
+              break;
+            case A:
+              FileViewer_enter_directory(&fileViewer);
+              break;
+            case B:
+              FileViewer_leave_directory(&fileViewer);
+              break;
+            default:
+              break;
+          }
         }
       }
-
-    } else {
-      sprintf(message, "%s open failed", DRIVE);
-      BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) message, LEFT_MODE);
     }
-  } else {
-    sprintf(message, "%s not mounted", DRIVE);
-    BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) message, LEFT_MODE);
   }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if (controller_status == NES_CONTROLLER_OK) {
-      HAL_Delay(75);
-      bool state = nes_match_button(nes_controller_read_code(&hi2c1), &button);
-
-      if (state == true) {
-        switch (button) {
-          case DOWN:
-            if (selector_pixel_position.Y < (SELECTOR_POS_1 + item - 1) * Font16.Height) {
-              BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-              BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) selector_type,
-                                      LEFT_MODE);
-
-              selector_pixel_position.Y += Font16.Height; selector_position += 1;
-
-              BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-              BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) selector_type,
-                                      LEFT_MODE);
-            } else {
-              // start searching for item from beginning (inefficient way)
-              unsigned long int item_pos = 0;
-              fr_result = f_findfirst(&dir, &filinfo, path, "*");
-              if (fr_result == FR_OK && filinfo.fname[0]) {
-                item_pos += 1;
-                while (fr_result == FR_OK && filinfo.fname[0]) {
-                  if (item_pos == total_items + 1) {
-                    // increase total_times
-                    total_items += 1;
-                    // shift down items_fname[]
-                    for (int i = 0; i < ITEMS - 1; i++) {
-                      BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
-                                              (uint8_t *) items_fname[i],
-                                              LEFT_MODE);
-                      memcpy(items_fname[i], items_fname[i + 1], sizeof(filinfo.fname));
-                      BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
-                                              (uint8_t *) items_fname[i],
-                                              LEFT_MODE);
-                    }
-                    // copy last item
-                    BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-                    BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS - 1) * Font16.Height,
-                                            (uint8_t *) items_fname[ITEMS - 1],
-                                            LEFT_MODE);
-                    memcpy(items_fname[ITEMS - 1], filinfo.fname, sizeof(filinfo.fname));
-                    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                    BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS-1) *Font16.Height,
-                                            (uint8_t *) items_fname[ITEMS - 1],
-                                            LEFT_MODE);
-                    break;
-                  }
-                  fr_result = f_findnext(&dir, &filinfo);
-                  item_pos += 1;
-                }
-              }
-            }
-            break;
-          case UP:
-            if (selector_pixel_position.Y > SELECTOR_POS_1 * Font16.Height) {
-              BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-              BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) selector_type,
-                                      LEFT_MODE);
-
-              selector_pixel_position.Y -=  Font16.Height; selector_position -= 1;
-
-              BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-              BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) selector_type,
-                                      LEFT_MODE);
-            } else {
-              // start searching for item from beginning (inefficient way)
-              unsigned long int item_pos = 0;
-              fr_result = f_findfirst(&dir, &filinfo, path, "*");
-              if (fr_result == FR_OK && filinfo.fname[0]) {
-                item_pos += 1;
-                while (fr_result == FR_OK && filinfo.fname[0]) {
-                  if (item_pos == total_items - ITEMS) {
-                    // decrease total items
-                    total_items -= 1;
-                    // shift up items_fname[]
-                    for (int i = ITEMS - 1; i > 0; i--) {
-                      BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
-                                              (uint8_t *) items_fname[i],
-                                              LEFT_MODE);
-                      memcpy(items_fname[i], items_fname[i - 1], sizeof(filinfo.fname));
-                      BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
-                                              (uint8_t *) items_fname[i],
-                                              LEFT_MODE);
-                    }
-                    // copy first item
-                    BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-                    BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + 0) * Font16.Height,
-                                            (uint8_t *) items_fname[0],
-                                            LEFT_MODE);
-                    memcpy(items_fname[0], filinfo.fname, sizeof(filinfo.fname));
-                    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                    BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + 0) * Font16.Height,
-                                            (uint8_t *) items_fname[0],
-                                            LEFT_MODE);
-                    break;
-                  }
-                  fr_result = f_findnext(&dir, &filinfo);
-                  item_pos += 1;
-                }
-              }
-            }
-            break;
-          case A:
-            if (strchr(items_fname[selector_position - SELECTOR_POS_1], '.') != NULL) {
-              // file
-            } else {
-              // dir
-              // clear old path on display
-              BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-              BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * Font16.Width, 0, (uint8_t *) path, LEFT_MODE);
-              // add to path new directory
-              if (path[strlen(path) - 1] != '/') {
-                strcat(path, "/");
-                slash += 1;
-              }
-              strcat(path, items_fname[selector_position - SELECTOR_POS_1]);
-              // display new path
-              BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-              BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * Font16.Width, 0, (uint8_t *) path, LEFT_MODE);
-              // clear last item selector
-              BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-              BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * Font16.Height, (uint8_t *) &selector_type,
-                                      LEFT_MODE);
-              // clear items from last path
-              for (int i = 0; i < item; i++) {
-                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
-                                        LEFT_MODE);
-              }
-              // find first item in path
-              fr_result = f_findfirst(&dir, &filinfo, path, "*");
-              // display item selector if there are items in directory
-              if (fr_result == FR_OK && filinfo.fname[0]) {
-                // set initial selector position
-                selector_position = SELECTOR_POS_1;
-                // display selector on screen
-                BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * Font16.Height, (uint8_t *) &selector_type,
-                                        LEFT_MODE);
-                selector_pixel_position.X = (int16_t) SELECTOR_X;
-                selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * Font16.Height);
-              }
-              // reset items name buffer
-              memset(items_fname, 0, sizeof items_fname);
-              // reset item counter
-              item = 0;
-              while (fr_result == FR_OK && filinfo.fname[0]) {
-                if (item < ITEMS) {
-                  BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + item) * Font16.Height, (uint8_t *) filinfo.fname,
-                                          LEFT_MODE);
-                  memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
-                  item += 1;
-                  fr_result = f_findnext(&dir, &filinfo);
-                } else {
-                  total_items = item;
-                  break;
-                }
-              }
-            }
-            break;
-          case B:
-            // path is not root == "/"
-            if (strlen(path) > 1) {
-              int path_len = strlen(path);
-              int chars = 0, i = path_len;
-              // clear old path on display
-              BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-              BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * Font16.Width, 0, (uint8_t *) path, LEFT_MODE);
-              // check '/' separator in path
-              while (path[i] != '/') {
-                i--;
-                chars++;
-              }
-              if (slash >= 2) {
-                path_len = path_len - chars;
-                slash -= 1;
-              } else {
-                path_len = path_len - (chars - 1);
-              }
-              // trim path
-              strlprecat(path, path, path_len + 1);
-              // display new path
-              BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-              BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * Font16.Width, 0, (uint8_t *) path, LEFT_MODE);
-              // clear last item selector
-              BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-              BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * Font16.Height, (uint8_t *) &selector_type,
-                                      LEFT_MODE);
-              // set initial selector position
-              selector_position = SELECTOR_POS_1;
-              // clear items from last path
-              for (int i = 0; i < item; i++) {
-                BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
-                                        LEFT_MODE);
-              }
-              // find first item in path
-              f_closedir(&dir);
-              fr_result = f_findfirst(&dir, &filinfo, path, "*");
-              // display item selector if there are items in directory
-              if (fr_result == FR_OK && filinfo.fname[0]) {
-                // set initial selector position
-                selector_position = SELECTOR_POS_1;
-                // display selector on screen
-                BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * Font16.Height, (uint8_t *) &selector_type,
-                                        LEFT_MODE);
-                selector_pixel_position.X = (int16_t) SELECTOR_X;
-                selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * Font16.Height);
-              }
-              // reset items name buffer
-              memset(items_fname, 0, sizeof items_fname);
-              // reset item counter
-              item = 0;
-              while (fr_result == FR_OK && filinfo.fname[0]) {
-                if (item < ITEMS) {
-                  BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + item) * Font16.Height, (uint8_t *) filinfo.fname,
-                                          LEFT_MODE);
-                  memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
-                  item += 1;
-                  fr_result = f_findnext(&dir, &filinfo);
-                } else {
-                  total_items = item;
-                  break;
-                }
-              }
-            }
-            break;
-          default:
-            break;
-        }
-      }
-    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

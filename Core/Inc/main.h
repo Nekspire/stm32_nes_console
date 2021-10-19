@@ -23,7 +23,6 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 
-#define DRIVE "DISC:"
 #ifdef __cplusplus
 extern "C" {
 #endif
