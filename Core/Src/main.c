@@ -47,10 +47,10 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
-#define SELECTOR_POS_1 2
-#define SELECTOR_X 0
-#define RECORD_X (Font16.Width + 1)
-#define ITEMS 18
+#define SELECTOR_POS_1  2
+#define SELECTOR_X      0
+#define RECORD_X        (Font16.Width + 1)
+#define ITEMS           18
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -149,11 +149,11 @@ int main(void)
   unsigned int slash = 1;
   long unsigned int total_items = 0;
   FATFS fs;
-  FIL file;
+  // FIL file;
   DIR dir;
   FILINFO filinfo;
-  BYTE opt = 0;
-  FRESULT fr_mount, fr_result = FR_OK;
+  // BYTE opt = 0;
+  FRESULT fr_mount, fr_result;
 
   NES_Controller_Status controller_status = nes_controller_init(&hi2c1);
 
@@ -234,11 +234,13 @@ int main(void)
                     // shift down items_fname[]
                     for (int i = 0; i < ITEMS - 1; i++) {
                       BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
+                                              (uint8_t *) items_fname[i],
                                               LEFT_MODE);
                       memcpy(items_fname[i], items_fname[i + 1], sizeof(filinfo.fname));
                       BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
+                                              (uint8_t *) items_fname[i],
                                               LEFT_MODE);
                     }
                     // copy last item
@@ -283,11 +285,13 @@ int main(void)
                     // shift up items_fname[]
                     for (int i = ITEMS - 1; i > 0; i--) {
                       BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
+                                              (uint8_t *) items_fname[i],
                                               LEFT_MODE);
                       memcpy(items_fname[i], items_fname[i - 1], sizeof(filinfo.fname));
                       BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
-                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
+                      BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
+                                              (uint8_t *) items_fname[i],
                                               LEFT_MODE);
                     }
                     // copy first item
@@ -358,7 +362,10 @@ int main(void)
                   memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
                   item += 1;
                   fr_result = f_findnext(&dir, &filinfo);
-                } else break;
+                } else {
+                  total_items = item;
+                  break;
+                }
               }
             }
             break;
@@ -422,7 +429,10 @@ int main(void)
                   memcpy(items_fname[item], filinfo.fname, sizeof(filinfo.fname));
                   item += 1;
                   fr_result = f_findnext(&dir, &filinfo);
-                } else break;
+                } else {
+                  total_items = item;
+                  break;
+                }
               }
             }
             break;
