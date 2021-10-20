@@ -103,7 +103,7 @@ int main(void)
   fileViewer.filinfo = &filinfo;
   fileViewer.display_properties.TextColor = LCD_COLOR_WHITE;
   fileViewer.display_properties.BackColor = LCD_COLOR_BLACK;
-  fileViewer.display_properties.pFont = &Font16;
+  fileViewer.display_properties.pFont = &Font20;
 
   if(FileViewer_init(&fileViewer) == true) {
     NES_Controller_Status controller_status = nes_controller_init(&hi2c1);
