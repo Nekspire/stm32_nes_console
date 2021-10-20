@@ -84,10 +84,10 @@ bool FileViewer_init(FileViewer *viewer) {
             item += 1;
             fr_result = f_findnext(viewer->dir, viewer->filinfo);
           } else {
-            total_items = item;
             break;
           }
         }
+        total_items = item;
 
       } else {
         sprintf(message, "%s open failed", DRIVE);
@@ -131,6 +131,8 @@ void FileViewer_enter_directory(FileViewer *viewer) {
       BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height, (uint8_t *) items_fname[i],
                               LEFT_MODE);
     }
+    // close dir
+    f_closedir(viewer->dir);
     // find first item in path
     fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
     // display item selector if there are items in directory
@@ -156,10 +158,10 @@ void FileViewer_enter_directory(FileViewer *viewer) {
         item += 1;
         fr_result = f_findnext(viewer->dir, viewer->filinfo);
       } else {
-        total_items = item;
         break;
       }
     }
+    total_items = item;
   }
 }
 
@@ -226,10 +228,10 @@ void FileViewer_leave_directory(FileViewer *viewer) {
         item += 1;
         fr_result = f_findnext(viewer->dir, viewer->filinfo);
       } else {
-        total_items = item;
         break;
       }
     }
+    total_items = item;
   }
 }
 
@@ -247,41 +249,46 @@ void FileViewer_scroll_down(FileViewer *viewer) {
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) selector_type,
                             LEFT_MODE);
   } else {
-    // start searching for item from beginning (inefficient way)
-    unsigned long int item_pos = 0;
-    fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
-    if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
-      item_pos += 1;
-      while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
-        if (item_pos == total_items + 1) {
-          // increase total_times
-          total_items += 1;
-          // shift down items_fname[]
-          for (int i = 0; i < ITEMS - 1; i++) {
-            BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-            BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
-                                    (uint8_t *) items_fname[i],
-                                    LEFT_MODE);
-            memcpy(items_fname[i], items_fname[i + 1], sizeof(viewer->filinfo->fname));
-            BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-            BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
-                                    (uint8_t *) items_fname[i],
-                                    LEFT_MODE);
-          }
-          // copy last item
-          BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-          BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS - 1) * Font16.Height,
-                                  (uint8_t *) items_fname[ITEMS - 1],
-                                  LEFT_MODE);
-          memcpy(items_fname[ITEMS - 1], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
-          BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-          BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS-1) *Font16.Height,
-                                  (uint8_t *) items_fname[ITEMS - 1],
-                                  LEFT_MODE);
-          break;
-        }
-        fr_result = f_findnext(viewer->dir, viewer->filinfo);
+    // scrolling down
+    if (total_items >= ITEMS) {
+      // start searching for item from beginning (inefficient way)
+      unsigned long int item_pos = 0;
+      // find first item in path
+      f_closedir(viewer->dir);
+      fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
+      if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
         item_pos += 1;
+        while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
+          if (item_pos == total_items + 1) {
+            // increase total_times
+            total_items += 1;
+            // shift down items_fname[]
+            for (int i = 0; i < ITEMS - 1; i++) {
+              BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+              BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
+                                      (uint8_t *) items_fname[i],
+                                      LEFT_MODE);
+              memcpy(items_fname[i], items_fname[i + 1], sizeof(viewer->filinfo->fname));
+              BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+              BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + i) * Font16.Height,
+                                      (uint8_t *) items_fname[i],
+                                      LEFT_MODE);
+            }
+            // copy last item
+            BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+            BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS - 1) * Font16.Height,
+                                    (uint8_t *) items_fname[ITEMS - 1],
+                                    LEFT_MODE);
+            memcpy(items_fname[ITEMS - 1], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+            BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+            BSP_LCD_DisplayStringAt(RECORD_X, (SELECTOR_POS_1 + ITEMS-1) *Font16.Height,
+                                    (uint8_t *) items_fname[ITEMS - 1],
+                                    LEFT_MODE);
+            break;
+          }
+          fr_result = f_findnext(viewer->dir, viewer->filinfo);
+          item_pos += 1;
+        }
       }
     }
   }
@@ -303,6 +310,8 @@ void FileViewer_scroll_up(FileViewer *viewer) {
   } else {
     // start searching for item from beginning (inefficient way)
     unsigned long int item_pos = 0;
+    // find first item in path
+    f_closedir(viewer->dir);
     fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
     if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
       item_pos += 1;
