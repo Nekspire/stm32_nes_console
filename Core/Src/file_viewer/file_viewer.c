@@ -50,6 +50,45 @@ static size_t strlprecat( char* dst, const char * src, size_t size) {
 }
 // (sizeof(DRIVE) - 1) * viewer->display_properties.pFont->Width
 
+static void scroll_item_horizontally(FileViewer *viewer) {
+  // temporary buffer
+  char temp[MAX_FILENAME_CHAR];
+  // copy items_fname[selector_position - SELECTOR_POS_1] to temporary buffer
+  memcpy(temp, items_fname[selector_position - SELECTOR_POS_1],
+         sizeof(items_fname[selector_position - SELECTOR_POS_1]));
+  const char clear[MAX_ITEM_CHAR] = {'A'};
+  unsigned int strlen_temp = strlen(temp);
+  int delta = (int) strlen_temp - MAX_ITEM_CHAR;
+  // shift left 1 character
+  for (int i = 0; i < delta; i++) {
+    BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+    BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
+                            (uint8_t *) clear, LEFT_MODE);
+    for (int j = 0; j < strlen_temp; j++) {
+      temp[j] = temp[j + 1];
+    }
+    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+    BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
+                            (uint8_t *) temp, LEFT_MODE);
+    //HAL_Delay(10);
+  }
+  HAL_Delay(500);
+  // shift right 1 character
+  for (int i = 0; i < delta; i++) {
+    BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+    BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
+                            (uint8_t *) clear, LEFT_MODE);
+    for (int j = MAX_ITEM_CHAR; j > 0; j--) {
+      temp[j] = temp[j - 1];
+    }
+    temp[0] = items_fname[selector_position - SELECTOR_POS_1][delta - i - 1];
+    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+    BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
+                            (uint8_t *) temp, LEFT_MODE);
+    //HAL_Delay(10);
+  }
+}
+
 bool FileViewer_init(FileViewer *viewer) {
   FRESULT fr_mount, fr_result;
   uint8_t lcd_result;
@@ -95,6 +134,10 @@ bool FileViewer_init(FileViewer *viewer) {
           }
         }
         total_items = item;
+
+        if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
+          scroll_item_horizontally(viewer);
+        }
 
       } else {
         sprintf(message, "%s open failed", DRIVE);
@@ -176,6 +219,10 @@ void FileViewer_enter_directory(FileViewer *viewer) {
     }
     total_items = item;
   }
+
+  if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
+    scroll_item_horizontally(viewer);
+  }
 }
 
 void FileViewer_leave_directory(FileViewer *viewer) {
@@ -252,6 +299,10 @@ void FileViewer_leave_directory(FileViewer *viewer) {
     }
     total_items = item;
   }
+
+  if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
+    scroll_item_horizontally(viewer);
+  }
 }
 
 void FileViewer_scroll_down(FileViewer *viewer) {
@@ -314,6 +365,10 @@ void FileViewer_scroll_down(FileViewer *viewer) {
       }
     }
   }
+
+  if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
+    scroll_item_horizontally(viewer);
+  }
 }
 
 void FileViewer_scroll_up(FileViewer *viewer) {
@@ -370,5 +425,9 @@ void FileViewer_scroll_up(FileViewer *viewer) {
         item_pos += 1;
       }
     }
+  }
+
+  if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
+    scroll_item_horizontally(viewer);
   }
 }

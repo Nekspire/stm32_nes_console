@@ -24,9 +24,13 @@
 // selector x coordinate position
 #define SELECTOR_X      0
 // maximum items on display
-// maximum items on display is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Height) - 2
+// maximum items on display is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Height) - SELECTOR_POS_1
 // for ili9486 and font height = 16 it's: (320 / 16) - 2 = 18
 #define ITEMS           14
+// maximum characters of ITEM name in line
+// maximum characters of ITEM name in line is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Width) - 1 (selector char)
+// for ili9486 and font width = 14 it's: (480 / 14)  - 1 = 33
+#define MAX_ITEM_CHAR  33
 // default disc name, it does not impact on path
 #define DRIVE           "DISC:"
 
