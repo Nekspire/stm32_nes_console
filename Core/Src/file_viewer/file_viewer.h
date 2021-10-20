@@ -5,6 +5,8 @@
 #include <fonts.h>
 #include <stm32_adafruit_lcd.h>
 
+
+#define SELECTOR_TYPE ">\0"
 // maximum characters in path
 #define PATHSIZE        30
 // initial selector position line
