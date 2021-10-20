@@ -1,7 +1,8 @@
 #MicroXplorer Configuration settings - do not modify
-FATFS.IPParameters=_FS_RPATH,_USE_FIND
+FATFS.IPParameters=_FS_RPATH,_USE_FIND,_USE_LFN
 FATFS._FS_RPATH=2
 FATFS._USE_FIND=1
+FATFS._USE_LFN=1
 File.Version=6
 GPIO.groupedBy=
 KeepUserPlacement=false

@@ -2,13 +2,23 @@
 #define FILE_VIEWER_H
 
 #include <fatfs.h>
+#include <ffconf.h>
 #include <fonts.h>
 #include <stm32_adafruit_lcd.h>
 
 
 #define SELECTOR_TYPE ">\0"
 // maximum characters in path
-#define PATHSIZE        30
+
+#if _USE_LFN
+#define MAX_PATH_CHAR     (5 * _MAX_LFN)
+#define MAX_FILENAME_CHAR _MAX_LFN
+#else
+#define MAX_PATH_CHAR     100
+#define MAX_FILENAME_CHAR 13
+#endif
+
+
 // initial selector position line
 #define SELECTOR_POS_1  2
 // selector x coordinate position
@@ -24,7 +34,7 @@ typedef struct {
     FATFS *fs;
     DIR *dir;
     FILINFO *filinfo;
-    char path[PATHSIZE];
+    char path[MAX_PATH_CHAR];
     LCD_DrawPropTypeDef display_properties;
 } FileViewer;
 

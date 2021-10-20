@@ -8,7 +8,7 @@ unsigned int selector_position = SELECTOR_POS_1;
 Point selector_pixel_position;
 unsigned int item = 0;
 long unsigned int total_items = 0;
-char items_fname[ITEMS][13];
+char items_fname[ITEMS][MAX_FILENAME_CHAR];
 unsigned int slash = 1;
 unsigned int item_pixel_x = 0;
 
@@ -48,6 +48,7 @@ static size_t strlprecat( char* dst, const char * src, size_t size) {
 
   return( srclen + dstlen);
 }
+// (sizeof(DRIVE) - 1) * viewer->display_properties.pFont->Width
 
 bool FileViewer_init(FileViewer *viewer) {
   FRESULT fr_mount, fr_result;
@@ -68,8 +69,8 @@ bool FileViewer_init(FileViewer *viewer) {
       fr_result = f_getcwd(viewer->path, sizeof(viewer->path));
 
       if (fr_result == FR_OK) {
-        BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) DRIVE, LEFT_MODE);
-        BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * viewer->display_properties.pFont->Width, 0,
+        //BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) DRIVE, LEFT_MODE);
+        BSP_LCD_DisplayStringAt(0, 0,
                                 (uint8_t *) viewer->path, LEFT_MODE);
 
         fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
@@ -118,7 +119,7 @@ void FileViewer_enter_directory(FileViewer *viewer) {
   if (strchr(items_fname[selector_position - SELECTOR_POS_1], '.') == NULL) {
     // clear old path on display
     BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-    BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * viewer->display_properties.pFont->Width, 0, (uint8_t *) viewer->path,
+    BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path,
                             LEFT_MODE);
     // add to path new directory
     if (viewer->path[strlen(viewer->path) - 1] != '/') {
@@ -128,7 +129,7 @@ void FileViewer_enter_directory(FileViewer *viewer) {
     strcat(viewer->path, items_fname[selector_position - SELECTOR_POS_1]);
     // display new path
     BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-    BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * viewer->display_properties.pFont->Width, 0, (uint8_t *) viewer->path,
+    BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path,
                             LEFT_MODE);
     // clear last item selector
     BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
@@ -186,7 +187,7 @@ void FileViewer_leave_directory(FileViewer *viewer) {
     int chars = 0, i = path_len;
     // clear old path on display
     BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-    BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * viewer->display_properties.pFont->Width, 0, (uint8_t *) viewer->path,
+    BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path,
                             LEFT_MODE);
     // check '/' separator in path
     while (viewer->path[i] != '/') {
@@ -203,7 +204,7 @@ void FileViewer_leave_directory(FileViewer *viewer) {
     strlprecat(viewer->path, viewer->path, path_len + 1);
     // display new path
     BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-    BSP_LCD_DisplayStringAt((sizeof(DRIVE) - 1) * viewer->display_properties.pFont->Width, 0, (uint8_t *) viewer->path,
+    BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path,
                             LEFT_MODE);
     // clear last item selector
     BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
