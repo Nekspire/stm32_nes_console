@@ -56,30 +56,22 @@ void FileViewer_scroll_item_horizontally(FileViewer *viewer) {
     // copy items_fname[selector_position - SELECTOR_POS_1] to temporary buffer
     memcpy(temp1, items_fname[selector_position - SELECTOR_POS_1],
            sizeof(items_fname[selector_position - SELECTOR_POS_1]));
-    // temporary buffer 2
-    char temp2[MAX_ITEM_CHAR];
 
     unsigned int strlen_temp = strlen(temp1);
     int delta = (int) strlen_temp - MAX_ITEM_CHAR;
     // shift left 1 character
-    memset(temp2, 'A', sizeof(temp2));
     for (int i = 0; i < delta; i++) {
-      BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-      BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
-                              (uint8_t *) temp2, LEFT_MODE);
       for (int j = 0; j < strlen_temp; j++) {
         temp1[j] = temp1[j + 1];
       }
       BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
       BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
                               (uint8_t *) temp1, LEFT_MODE);
+      DELAY_MS(15);
     }
     DELAY_MS(500);
     // shift right 1 character
     for (int i = 0; i < delta; i++) {
-      BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-      BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
-                              (uint8_t *) temp2, LEFT_MODE);
       for (int j = MAX_ITEM_CHAR - 1; j > 0; j--) {
         temp1[j] = temp1[j - 1];
       }

@@ -6,10 +6,6 @@
 #include <fonts.h>
 #include <stm32_adafruit_lcd.h>
 
-
-#define SELECTOR_TYPE ">\0"
-// maximum characters in path
-
 #if _USE_LFN
 #define MAX_PATH_CHAR     (5 * (_MAX_LFN + 1))
 #define MAX_FILENAME_CHAR (_MAX_LFN + 1)
@@ -18,7 +14,8 @@
 #define MAX_FILENAME_CHAR 13
 #endif
 
-
+#define SELECTOR_TYPE ">\0"
+// maximum characters in path
 // initial selector position line
 #define SELECTOR_POS_1  2
 // selector x coordinate position
