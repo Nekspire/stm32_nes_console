@@ -110,7 +110,7 @@ int main(void)
 
     while (1) {
       if (controller_status == NES_CONTROLLER_OK) {
-        HAL_Delay(75);
+        HAL_Delay(20);
 
         bool state = nes_match_button(nes_controller_read_code(&hi2c1), &button);
 
@@ -127,6 +127,9 @@ int main(void)
               break;
             case B:
               FileViewer_leave_directory(&fileViewer);
+              break;
+            case RIGHT:
+              FileViewer_scroll_item_horizontally(&fileViewer);
               break;
             default:
               break;

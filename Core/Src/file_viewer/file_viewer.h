@@ -11,8 +11,8 @@
 // maximum characters in path
 
 #if _USE_LFN
-#define MAX_PATH_CHAR     (5 * _MAX_LFN)
-#define MAX_FILENAME_CHAR _MAX_LFN
+#define MAX_PATH_CHAR     (5 * (_MAX_LFN + 1))
+#define MAX_FILENAME_CHAR (_MAX_LFN + 1)
 #else
 #define MAX_PATH_CHAR     100
 #define MAX_FILENAME_CHAR 13
@@ -33,6 +33,8 @@
 #define MAX_ITEM_CHAR  33
 // default disc name, it does not impact on path
 #define DRIVE           "DISC:"
+// delay macro
+#define DELAY_MS(x) HAL_Delay(x)
 
 typedef struct {
     FATFS *fs;
@@ -47,5 +49,6 @@ void FileViewer_enter_directory(FileViewer *);
 void FileViewer_leave_directory(FileViewer *);
 void FileViewer_scroll_down(FileViewer *);
 void FileViewer_scroll_up(FileViewer *);
+void FileViewer_scroll_item_horizontally(FileViewer *);
 
 #endif
