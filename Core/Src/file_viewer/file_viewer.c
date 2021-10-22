@@ -319,10 +319,10 @@ void FileViewer_scroll_down(FileViewer *viewer) {
   } else {
     // scrolling down
     if (total_items >= ITEMS) {
-      // start searching for item from beginning (inefficient way)
       unsigned long int item_pos = 0;
       // find first item in path
       f_closedir(viewer->dir);
+      // start searching for item from beginning (inefficient way)
       fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
       if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
         item_pos += 1;
@@ -332,29 +332,36 @@ void FileViewer_scroll_down(FileViewer *viewer) {
             total_items += 1;
 
             for (int i = 0; i <= ITEMS - 1; i++) {
-              if (strlen(items_fname[i + 1]) < sizeof(temp)) {
-                // clearing is necessary
-                BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-                memset(temp, ' ', sizeof(temp));
-                BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
-                                        (uint8_t *) temp,
-                                        LEFT_MODE);
-              }
-              // clearing is not necessary
               // shift down items_fname[]
               if (i == ITEMS - 1) {
                 memcpy(items_fname[i], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
               } else {
                 memcpy(items_fname[i], items_fname[i + 1], sizeof(viewer->filinfo->fname));
               }
-              // copy to temporary buffer
-              memcpy(temp, items_fname[i], sizeof(temp) - 1);
-              temp[sizeof(temp) - 1] = '\0';
-              // display item name directly
-              BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-              BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
-                                      (uint8_t *) temp,
-                                      LEFT_MODE);
+
+              int str_len = (int) strlen(items_fname[i]);
+              int delta = str_len - MAX_ITEM_CHAR;
+              if(delta >= 0) {
+                // clearing is not necessary
+                for (int j = 0; j < MAX_ITEM_CHAR; j++) {
+                  BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
+                                      (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
+                                      items_fname[i][j]);
+                }
+              } else {
+                // clearing is necessary
+                for (int j = 0; j < MAX_ITEM_CHAR; j++) {
+                  if (j < str_len) {
+                    BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
+                                        (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
+                                        items_fname[i][j]);
+                  } else {
+                    BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
+                                        (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
+                                        ' ');
+                  }
+                }
+              }
             }
             break;
           }
@@ -383,10 +390,10 @@ void FileViewer_scroll_up(FileViewer *viewer) {
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
   } else {
-    // start searching for item from beginning (inefficient way)
     unsigned long int item_pos = 0;
     // find first item in path
     f_closedir(viewer->dir);
+    // start searching for item from beginning (inefficient way)
     fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
     if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
       item_pos += 1;
@@ -396,29 +403,36 @@ void FileViewer_scroll_up(FileViewer *viewer) {
           total_items -= 1;
 
           for (int i = ITEMS - 1; i >= 0; i--) {
-            if (strlen(items_fname[i - 1]) < sizeof(temp)) {
-              // clearing is necessary
-              BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-              memset(temp, ' ', sizeof(temp));
-              BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
-                                      (uint8_t *) temp,
-                                      LEFT_MODE);
-            }
-            // clearing is not necessary
-            // shift up items_fname[]
+            // shift down items_fname[]
             if (i == 0) {
               memcpy(items_fname[i], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
             } else {
               memcpy(items_fname[i], items_fname[i - 1], sizeof(viewer->filinfo->fname));
             }
-            // copy to temporary buffer
-            memcpy(temp, items_fname[i], sizeof(temp) - 1);
-            temp[sizeof(temp) - 1] = '\0';
-            // display item name directly
-            BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-            BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
-                                    (uint8_t *) temp,
-                                    LEFT_MODE);
+
+            int str_len = (int) strlen(items_fname[i]);
+            int delta = str_len - MAX_ITEM_CHAR;
+            if(delta >= 0) {
+              // clearing is not necessary
+              for (int j = 0; j < MAX_ITEM_CHAR; j++) {
+                BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
+                                    (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
+                                    items_fname[i][j]);
+              }
+            } else {
+              // clearing is necessary
+              for (int j = 0; j < MAX_ITEM_CHAR; j++) {
+                if (j < str_len) {
+                  BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
+                                      (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
+                                      items_fname[i][j]);
+                } else {
+                  BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
+                                      (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
+                                      ' ');
+                }
+              }
+            }
           }
           break;
         }
