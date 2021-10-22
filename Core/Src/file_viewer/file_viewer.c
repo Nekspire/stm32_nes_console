@@ -330,36 +330,32 @@ void FileViewer_scroll_down(FileViewer *viewer) {
           if (item_pos == total_items + 1) {
             // increase total_times
             total_items += 1;
-            // shift down items_fname[]
-            for (int i = 0; i < ITEMS - 1; i++) {
-              memset(temp, 'A', sizeof(temp));
-              BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-              BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
-                                      (uint8_t *) temp,
-                                      LEFT_MODE);
-              memcpy(items_fname[i], items_fname[i + 1], sizeof(viewer->filinfo->fname));
+
+            for (int i = 0; i <= ITEMS - 1; i++) {
+              if (strlen(items_fname[i + 1]) < sizeof(temp)) {
+                // clearing is necessary
+                BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+                memset(temp, ' ', sizeof(temp));
+                BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
+                                        (uint8_t *) temp,
+                                        LEFT_MODE);
+              }
+              // clearing is not necessary
+              // shift down items_fname[]
+              if (i == ITEMS - 1) {
+                memcpy(items_fname[i], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+              } else {
+                memcpy(items_fname[i], items_fname[i + 1], sizeof(viewer->filinfo->fname));
+              }
+              // copy to temporary buffer
               memcpy(temp, items_fname[i], sizeof(temp) - 1);
               temp[sizeof(temp) - 1] = '\0';
+              // display item name directly
               BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
               BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
                                       (uint8_t *) temp,
                                       LEFT_MODE);
             }
-            // copy last item
-            memset(temp, 'A', sizeof(temp));
-            BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-            BSP_LCD_DisplayStringAt(item_pixel_x,
-                                    (SELECTOR_POS_1 + ITEMS - 1) * viewer->display_properties.pFont->Height,
-                                    (uint8_t *) temp,
-                                    LEFT_MODE);
-            memcpy(items_fname[ITEMS - 1], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
-            memcpy(temp, items_fname[ITEMS - 1], sizeof(temp) - 1);
-            temp[sizeof(temp) - 1] = '\0';
-            BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-            BSP_LCD_DisplayStringAt(item_pixel_x,
-                                    (SELECTOR_POS_1 + ITEMS - 1) * viewer->display_properties.pFont->Height,
-                                    (uint8_t *) temp,
-                                    LEFT_MODE);
             break;
           }
           fr_result = f_findnext(viewer->dir, viewer->filinfo);
@@ -398,34 +394,32 @@ void FileViewer_scroll_up(FileViewer *viewer) {
         if (item_pos == total_items - ITEMS) {
           // decrease total items
           total_items -= 1;
-          // shift up items_fname[]
-          for (int i = ITEMS - 1; i > 0; i--) {
-            memset(temp, 'A', sizeof(temp));
-            BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-            BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
-                                    (uint8_t *) temp,
-                                    LEFT_MODE);
-            memcpy(items_fname[i], items_fname[i - 1], sizeof(viewer->filinfo->fname));
+
+          for (int i = ITEMS - 1; i >= 0; i--) {
+            if (strlen(items_fname[i - 1]) < sizeof(temp)) {
+              // clearing is necessary
+              BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+              memset(temp, ' ', sizeof(temp));
+              BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
+                                      (uint8_t *) temp,
+                                      LEFT_MODE);
+            }
+            // clearing is not necessary
+            // shift up items_fname[]
+            if (i == 0) {
+              memcpy(items_fname[i], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+            } else {
+              memcpy(items_fname[i], items_fname[i - 1], sizeof(viewer->filinfo->fname));
+            }
+            // copy to temporary buffer
             memcpy(temp, items_fname[i], sizeof(temp) - 1);
             temp[sizeof(temp) - 1] = '\0';
+            // display item name directly
             BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
             BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + i) * viewer->display_properties.pFont->Height,
                                     (uint8_t *) temp,
                                     LEFT_MODE);
           }
-          // copy first item
-          memset(temp, 'A', sizeof(temp));
-          BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-          BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + 0) * viewer->display_properties.pFont->Height,
-                                  (uint8_t *) temp,
-                                  LEFT_MODE);
-          memcpy(items_fname[0], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
-          memcpy(temp, items_fname[ITEMS - 1], sizeof(temp) - 1);
-          temp[sizeof(temp) - 1] = '\0';
-          BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-          BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 + 0) * viewer->display_properties.pFont->Height,
-                                  (uint8_t *) temp,
-                                  LEFT_MODE);
           break;
         }
         fr_result = f_findnext(viewer->dir, viewer->filinfo);
