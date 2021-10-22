@@ -52,46 +52,44 @@ static size_t strlprecat( char* dst, const char * src, size_t size) {
 void FileViewer_scroll_item_horizontally(FileViewer *viewer) {
   if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
     // temporary buffer 1
-    char temp1[MAX_FILENAME_CHAR];
-    // temporary buffer 2
-    char temp2[MAX_ITEM_CHAR + 1];
+    char temp[MAX_FILENAME_CHAR];
     // copy items_fname[selector_position - SELECTOR_POS_1] to temporary buffer
-    memcpy(temp1, items_fname[selector_position - SELECTOR_POS_1],
+    memcpy(temp, items_fname[selector_position - SELECTOR_POS_1],
            sizeof(items_fname[selector_position - SELECTOR_POS_1]));
 
-    unsigned int strlen_temp = strlen(temp1);
+    unsigned int strlen_temp = strlen(temp);
     int delta = (int) strlen_temp - MAX_ITEM_CHAR;
     // shift left 1 character
     for (int i = 0; i < delta; i++) {
       for (int j = 0; j < strlen_temp; j++) {
-        temp1[j] = temp1[j + 1];
+        temp[j] = temp[j + 1];
       }
-      memcpy(temp2, temp1, sizeof(temp2));
-      temp2[sizeof(temp2) - 1] = '\0';
-      BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-      BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
-                              (uint8_t *) temp2, LEFT_MODE);
+      for (int j = 0; j < MAX_ITEM_CHAR; j++) {
+        BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
+                            selector_position * viewer->display_properties.pFont->Height,
+                            temp[j]);
+      }
       DELAY_MS(15);
     }
     DELAY_MS(500);
     // directly back to initial position
-    memcpy(temp2, items_fname[selector_position - SELECTOR_POS_1], sizeof(temp2));
-    temp2[sizeof(temp2) - 1] = '\0';
-    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-    BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
-                            (uint8_t *) temp2, LEFT_MODE);
+    for (int j = 0; j < MAX_ITEM_CHAR; j++) {
+      BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
+                          selector_position * viewer->display_properties.pFont->Height,
+                          items_fname[selector_position - SELECTOR_POS_1][j]);
+    }
 
     // shift right 1 character
     // scroll back to initial position
     /* for (int i = 0; i < delta; i++) {
       for (int j = MAX_ITEM_CHAR - 1; j > 0; j--) {
-        temp1[j] = temp1[j - 1];
+        temp[j] = temp[j - 1];
       }
-      temp1[0] = items_fname[selector_position - SELECTOR_POS_1][delta - i - 1];
+      temp[0] = items_fname[selector_position - SELECTOR_POS_1][delta - i - 1];
       if()
       BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
       BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
-                              (uint8_t *) temp1, LEFT_MODE);
+                              (uint8_t *) temp, LEFT_MODE);
     } */
   }
 }
