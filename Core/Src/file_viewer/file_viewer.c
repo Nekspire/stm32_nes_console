@@ -302,8 +302,6 @@ void FileViewer_leave_directory(FileViewer *viewer) {
 
 void FileViewer_scroll_down(FileViewer *viewer) {
   FRESULT fr_result;
-  // temporary buffer
-  char temp[MAX_ITEM_CHAR + 1];
 
   if (selector_pixel_position.Y < (SELECTOR_POS_1 + item - 1) * viewer->display_properties.pFont->Height) {
     BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
@@ -334,9 +332,9 @@ void FileViewer_scroll_down(FileViewer *viewer) {
             for (int i = 0; i <= ITEMS - 1; i++) {
               // shift down items_fname[]
               if (i == ITEMS - 1) {
-                memcpy(items_fname[i], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+                memcpy(items_fname[i], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
               } else {
-                memcpy(items_fname[i], items_fname[i + 1], sizeof(viewer->filinfo->fname));
+                memcpy(items_fname[i], items_fname[i + 1], strlen(items_fname[i + 1]) + 1);
               }
 
               int str_len = (int) strlen(items_fname[i]);
@@ -375,8 +373,6 @@ void FileViewer_scroll_down(FileViewer *viewer) {
 
 void FileViewer_scroll_up(FileViewer *viewer) {
   FRESULT fr_result;
-  // temporary buffer
-  char temp[MAX_ITEM_CHAR + 1];
 
   if (selector_pixel_position.Y > SELECTOR_POS_1 * viewer->display_properties.pFont->Height) {
     BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
@@ -405,9 +401,9 @@ void FileViewer_scroll_up(FileViewer *viewer) {
           for (int i = ITEMS - 1; i >= 0; i--) {
             // shift down items_fname[]
             if (i == 0) {
-              memcpy(items_fname[i], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+              memcpy(items_fname[i], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
             } else {
-              memcpy(items_fname[i], items_fname[i - 1], sizeof(viewer->filinfo->fname));
+              memcpy(items_fname[i], items_fname[i - 1], strlen(items_fname[i - 1]) + 1);
             }
 
             int str_len = (int) strlen(items_fname[i]);

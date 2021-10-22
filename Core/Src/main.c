@@ -110,8 +110,8 @@ int main(void)
 
     while (1) {
       if (controller_status == NES_CONTROLLER_OK) {
-        HAL_Delay(20);
 
+        HAL_Delay(20);
         bool state = nes_match_button(nes_controller_read_code(&hi2c1), &button);
 
         if (state == true) {
