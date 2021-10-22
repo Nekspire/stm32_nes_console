@@ -53,6 +53,8 @@ void FileViewer_scroll_item_horizontally(FileViewer *viewer) {
   if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
     // temporary buffer 1
     char temp1[MAX_FILENAME_CHAR];
+    // temporary buffer 2
+    char temp2[MAX_ITEM_CHAR + 1];
     // copy items_fname[selector_position - SELECTOR_POS_1] to temporary buffer
     memcpy(temp1, items_fname[selector_position - SELECTOR_POS_1],
            sizeof(items_fname[selector_position - SELECTOR_POS_1]));
@@ -64,22 +66,33 @@ void FileViewer_scroll_item_horizontally(FileViewer *viewer) {
       for (int j = 0; j < strlen_temp; j++) {
         temp1[j] = temp1[j + 1];
       }
+      memcpy(temp2, temp1, sizeof(temp2));
+      temp2[sizeof(temp2) - 1] = '\0';
       BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
       BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
-                              (uint8_t *) temp1, LEFT_MODE);
+                              (uint8_t *) temp2, LEFT_MODE);
       DELAY_MS(15);
     }
     DELAY_MS(500);
+    // directly back to initial position
+    memcpy(temp2, items_fname[selector_position - SELECTOR_POS_1], sizeof(temp2));
+    temp2[sizeof(temp2) - 1] = '\0';
+    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+    BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
+                            (uint8_t *) temp2, LEFT_MODE);
+
     // shift right 1 character
-    for (int i = 0; i < delta; i++) {
+    // scroll back to initial position
+    /* for (int i = 0; i < delta; i++) {
       for (int j = MAX_ITEM_CHAR - 1; j > 0; j--) {
         temp1[j] = temp1[j - 1];
       }
       temp1[0] = items_fname[selector_position - SELECTOR_POS_1][delta - i - 1];
+      if()
       BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
       BSP_LCD_DisplayStringAt(item_pixel_x, selector_position * viewer->display_properties.pFont->Height,
                               (uint8_t *) temp1, LEFT_MODE);
-    }
+    } */
   }
 }
 
