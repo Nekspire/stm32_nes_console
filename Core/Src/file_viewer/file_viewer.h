@@ -14,31 +14,32 @@
 #define MAX_FILENAME_CHAR 13
 #endif
 
-#define SELECTOR_TYPE ">\0"
+#define SELECTOR_TYPE     ">\0"
 // maximum characters in path
 // initial selector position line
-#define SELECTOR_POS_1  2
+#define SELECTOR_POS_1    2
 // selector x coordinate position
-#define SELECTOR_X      0
+#define SELECTOR_X        0
 // maximum items on display
 // maximum items on display is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Height) - SELECTOR_POS_1
 // for ili9486 and font height = 16 it's: (320 / 16) - 2 = 18
-#define ITEMS           14
+#define ITEMS             14
 // maximum characters of ITEM name in line
 // maximum characters of ITEM name in line is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Width) - 1 (selector char)
 // for ili9486 and font width = 14 it's: (480 / 14)  - 1 = 33
-#define MAX_ITEM_CHAR  33
+#define MAX_ITEM_LINECHAR 33
 // default disc name, it does not impact on path
-#define DRIVE           "DISC:"
+#define DRIVE             "DISC:"
 // delay macro
-#define DELAY_MS(x) HAL_Delay(x)
+#define DELAY_MS(x)       HAL_Delay(x)
 
 typedef struct {
     FATFS *fs;
     DIR *dir;
     FILINFO *filinfo;
     char path[MAX_PATH_CHAR];
-    LCD_DrawPropTypeDef display_properties;
+    LCD_DrawPropTypeDef path_display_properties;
+    LCD_DrawPropTypeDef items_display_properties;
 } FileViewer;
 
 bool FileViewer_init(FileViewer *);

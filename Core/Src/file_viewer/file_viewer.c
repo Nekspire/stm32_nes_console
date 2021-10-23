@@ -52,21 +52,21 @@ static size_t strlprecat( char* dst, const char * src, size_t size) {
 static void display_items_fname_by_char(FileViewer *viewer, unsigned int index) {
   int str_len = (int) strlen(items_fname[index]);
 
-  for (int j = 0; j < MAX_ITEM_CHAR; j++) {
+  for (int j = 0; j < MAX_ITEM_LINECHAR; j++) {
     if (j < str_len) {
-      BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
-                          (SELECTOR_POS_1 + index) * viewer->display_properties.pFont->Height,
+      BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->items_display_properties.pFont->Width),
+                          (SELECTOR_POS_1 + index) * viewer->items_display_properties.pFont->Height,
                           items_fname[index][j]);
     } else {
-      BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
-                          (SELECTOR_POS_1 + index) * viewer->display_properties.pFont->Height,
+      BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->items_display_properties.pFont->Width),
+                          (SELECTOR_POS_1 + index) * viewer->items_display_properties.pFont->Height,
                           ' ');
     }
   }
 }
 
 void FileViewer_unwrap_item_name(FileViewer *viewer) {
-  if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
+  if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_LINECHAR) {
     // temporary buffer 1
     char temp[MAX_FILENAME_CHAR];
     // copy items_fname[selector_position - SELECTOR_POS_1] to temporary buffer
@@ -74,31 +74,31 @@ void FileViewer_unwrap_item_name(FileViewer *viewer) {
            sizeof(items_fname[selector_position - SELECTOR_POS_1]));
 
     unsigned int strlen_temp = strlen(temp);
-    int delta = (int) strlen_temp - MAX_ITEM_CHAR;
+    int delta = (int) strlen_temp - MAX_ITEM_LINECHAR;
     // shift left 1 character
     for (int i = 0; i < delta; i++) {
       for (int j = 0; j < strlen_temp; j++) {
         temp[j] = temp[j + 1];
       }
-      for (int j = 0; j < MAX_ITEM_CHAR; j++) {
-        BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
-                            selector_position * viewer->display_properties.pFont->Height,
+      for (int j = 0; j < MAX_ITEM_LINECHAR; j++) {
+        BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->items_display_properties.pFont->Width),
+                            selector_position * viewer->items_display_properties.pFont->Height,
                             temp[j]);
       }
       DELAY_MS(15);
     }
     DELAY_MS(500);
     // directly back to initial position
-    for (int j = 0; j < MAX_ITEM_CHAR; j++) {
-      BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->display_properties.pFont->Width),
-                          selector_position * viewer->display_properties.pFont->Height,
+    for (int j = 0; j < MAX_ITEM_LINECHAR; j++) {
+      BSP_LCD_DisplayChar(item_pixel_x + (j * viewer->items_display_properties.pFont->Width),
+                          selector_position * viewer->items_display_properties.pFont->Height,
                           items_fname[selector_position - SELECTOR_POS_1][j]);
     }
 
     // shift right 1 character
     // scroll back to initial position
     /* for (int i = 0; i < delta; i++) {
-      for (int j = MAX_ITEM_CHAR - 1; j > 0; j--) {
+      for (int j = MAX_ITEM_LINECHAR - 1; j > 0; j--) {
         temp[j] = temp[j - 1];
       }
       temp[0] = items_fname[selector_position - SELECTOR_POS_1][delta - i - 1];
@@ -117,11 +117,12 @@ bool FileViewer_init(FileViewer *viewer) {
   lcd_result = BSP_LCD_Init();
 
   if (lcd_result == LCD_OK) {
-    item_pixel_x = viewer->display_properties.pFont->Width + 1;
+    item_pixel_x = viewer->items_display_properties.pFont->Width + 1;
 
-    BSP_LCD_Clear(viewer->display_properties.BackColor);
-    BSP_LCD_SetFont(viewer->display_properties.pFont);
-    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+    BSP_LCD_Clear(viewer->items_display_properties.BackColor);
+    // path display properties
+    BSP_LCD_SetFont(viewer->path_display_properties.pFont);
+    BSP_LCD_SetTextColor(viewer->path_display_properties.TextColor);
 
     fr_mount = f_mount(viewer->fs, viewer->path, 0);
 
@@ -133,11 +134,15 @@ bool FileViewer_init(FileViewer *viewer) {
 
         fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
 
+        // items display properties
+        BSP_LCD_SetFont(viewer->items_display_properties.pFont);
+        BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
         if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
-          BSP_LCD_DisplayStringAt(SELECTOR_X, 2 * viewer->display_properties.pFont->Height, (uint8_t *) SELECTOR_TYPE,
+          BSP_LCD_DisplayStringAt(SELECTOR_X, 2 * viewer->items_display_properties.pFont->Height,
+                                  (uint8_t *) SELECTOR_TYPE,
                                   LEFT_MODE);
           selector_pixel_position.X = (int16_t) SELECTOR_X;
-          selector_pixel_position.Y = (int16_t) (2 * viewer->display_properties.pFont->Height);
+          selector_pixel_position.Y = (int16_t) (2 * viewer->items_display_properties.pFont->Height);
         }
 
         while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
@@ -174,7 +179,8 @@ void FileViewer_enter_directory(FileViewer *viewer) {
 
   if (strchr(items_fname[selector_position - SELECTOR_POS_1], '.') == NULL) {
     // clear old path on display
-    BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+    BSP_LCD_SetTextColor(viewer->path_display_properties.BackColor);
+    BSP_LCD_SetFont(viewer->path_display_properties.pFont);
     BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path,
                             LEFT_MODE);
     // add to path new directory
@@ -184,12 +190,13 @@ void FileViewer_enter_directory(FileViewer *viewer) {
     }
     strcat(viewer->path, items_fname[selector_position - SELECTOR_POS_1]);
     // display new path
-    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+    BSP_LCD_SetTextColor(viewer->path_display_properties.TextColor);
     BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path,
                             LEFT_MODE);
     // clear last item selector
-    BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-    BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->display_properties.pFont->Height,
+    BSP_LCD_SetFont(viewer->items_display_properties.pFont);
+    BSP_LCD_SetTextColor(viewer->items_display_properties.BackColor);
+    BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->items_display_properties.pFont->Height,
                             (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
     // close dir
@@ -200,13 +207,14 @@ void FileViewer_enter_directory(FileViewer *viewer) {
     if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
       // set initial selector position
       selector_position = SELECTOR_POS_1;
+      BSP_LCD_SetFont(viewer->items_display_properties.pFont);
       // display selector on screen
-      BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-      BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->display_properties.pFont->Height,
+      BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
+      BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height,
                               (uint8_t *) SELECTOR_TYPE,
                               LEFT_MODE);
       selector_pixel_position.X = (int16_t) SELECTOR_X;
-      selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->display_properties.pFont->Height);
+      selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height);
     }
     // reset items name buffer
     memset(items_fname, 0, sizeof items_fname);
@@ -240,7 +248,8 @@ void FileViewer_leave_directory(FileViewer *viewer) {
   if (path_len > 1) {
     int chars = 0, i = path_len;
     // clear old path on display
-    BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+    BSP_LCD_SetTextColor(viewer->path_display_properties.BackColor);
+    BSP_LCD_SetFont(viewer->path_display_properties.pFont);
     BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path,
                             LEFT_MODE);
     // check '/' separator in path
@@ -257,12 +266,13 @@ void FileViewer_leave_directory(FileViewer *viewer) {
     // trim path
     strlprecat(viewer->path, viewer->path, path_len + 1);
     // display new path
-    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+    BSP_LCD_SetTextColor(viewer->path_display_properties.TextColor);
     BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path,
                             LEFT_MODE);
     // clear last item selector
-    BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-    BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->display_properties.pFont->Height,
+    BSP_LCD_SetFont(viewer->items_display_properties.pFont);
+    BSP_LCD_SetTextColor(viewer->items_display_properties.BackColor);
+    BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->items_display_properties.pFont->Height,
                             (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
     // set initial selector position
@@ -275,12 +285,13 @@ void FileViewer_leave_directory(FileViewer *viewer) {
       // set initial selector position
       selector_position = SELECTOR_POS_1;
       // display selector on screen
-      BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-      BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->display_properties.pFont->Height,
+      BSP_LCD_SetFont(viewer->items_display_properties.pFont);
+      BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
+      BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height,
                               (uint8_t *) SELECTOR_TYPE,
                               LEFT_MODE);
       selector_pixel_position.X = (int16_t) SELECTOR_X;
-      selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->display_properties.pFont->Height);
+      selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height);
     }
     // reset items name buffer
     memset(items_fname, 0, sizeof items_fname);
@@ -309,15 +320,15 @@ void FileViewer_leave_directory(FileViewer *viewer) {
 void FileViewer_scroll_down(FileViewer *viewer) {
   FRESULT fr_result;
 
-  if (selector_pixel_position.Y < (SELECTOR_POS_1 + item - 1) * viewer->display_properties.pFont->Height) {
-    BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+  if (selector_pixel_position.Y < (SELECTOR_POS_1 + item - 1) * viewer->items_display_properties.pFont->Height) {
+    BSP_LCD_SetTextColor(viewer->items_display_properties.BackColor);
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
 
-    selector_pixel_position.Y += (int16_t) viewer->display_properties.pFont->Height;
+    selector_pixel_position.Y += (int16_t) viewer->items_display_properties.pFont->Height;
     selector_position += 1;
 
-    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+    BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
   } else {
@@ -358,15 +369,15 @@ void FileViewer_scroll_down(FileViewer *viewer) {
 void FileViewer_scroll_up(FileViewer *viewer) {
   FRESULT fr_result;
 
-  if (selector_pixel_position.Y > SELECTOR_POS_1 * viewer->display_properties.pFont->Height) {
-    BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+  if (selector_pixel_position.Y > SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height) {
+    BSP_LCD_SetTextColor(viewer->items_display_properties.BackColor);
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
 
-    selector_pixel_position.Y -= (int16_t) viewer->display_properties.pFont->Height;
+    selector_pixel_position.Y -= (int16_t) viewer->items_display_properties.pFont->Height;
     selector_position -= 1;
 
-    BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+    BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
   } else {
@@ -416,19 +427,19 @@ void FileViewer_scroll_page_right(FileViewer *viewer) {
       while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
         if (item_pos == total_items + 1) {
           // clear last item selector
-          BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-          BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->display_properties.pFont->Height,
+          BSP_LCD_SetTextColor(viewer->items_display_properties.BackColor);
+          BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->items_display_properties.pFont->Height,
                                   (uint8_t *) SELECTOR_TYPE,
                                   LEFT_MODE);
           // set initial selector position
           selector_position = SELECTOR_POS_1;
           // display selector on screen
-          BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-          BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->display_properties.pFont->Height,
+          BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
+          BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height,
                                   (uint8_t *) SELECTOR_TYPE,
                                   LEFT_MODE);
           selector_pixel_position.X = (int16_t) SELECTOR_X;
-          selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->display_properties.pFont->Height);
+          selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height);
           // reset items name buffer
           memset(items_fname, 0, sizeof items_fname);
           // reset item counter
@@ -472,19 +483,19 @@ void FileViewer_scroll_page_left(FileViewer *viewer) {
     while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
       if (item_pos == total_items - (2 * ITEMS) + 1) {
         // clear last item selector
-        BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
-        BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->display_properties.pFont->Height,
+        BSP_LCD_SetTextColor(viewer->items_display_properties.BackColor);
+        BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->items_display_properties.pFont->Height,
                                 (uint8_t *) SELECTOR_TYPE,
                                 LEFT_MODE);
         // set initial selector position
         selector_position = SELECTOR_POS_1;
         // display selector on screen
-        BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
-        BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->display_properties.pFont->Height,
+        BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
+        BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height,
                                 (uint8_t *) SELECTOR_TYPE,
                                 LEFT_MODE);
         selector_pixel_position.X = (int16_t) SELECTOR_X;
-        selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->display_properties.pFont->Height);
+        selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->items_display_properties.pFont->Height);
         // reset items name buffer
         memset(items_fname, 0, sizeof items_fname);
         // reset item counter
