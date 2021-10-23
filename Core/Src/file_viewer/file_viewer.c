@@ -192,10 +192,6 @@ void FileViewer_enter_directory(FileViewer *viewer) {
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->display_properties.pFont->Height,
                             (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
-    // clear items from last path
-    for (int i = 0; i < item; i++) {
-      display_items_fname_by_char(viewer, i);
-    }
     // close dir
     f_closedir(viewer->dir);
     // find first item in path
@@ -224,6 +220,12 @@ void FileViewer_enter_directory(FileViewer *viewer) {
         fr_result = f_findnext(viewer->dir, viewer->filinfo);
       } else {
         break;
+      }
+    }
+    if (item != ITEMS) {
+      // clear additional items from last page
+      for (int i = item; i < ITEMS; i++) {
+        display_items_fname_by_char(viewer, i);
       }
     }
     total_items = item;
@@ -265,10 +267,6 @@ void FileViewer_leave_directory(FileViewer *viewer) {
                             LEFT_MODE);
     // set initial selector position
     selector_position = SELECTOR_POS_1;
-    // clear items from last path
-    for (int j = 0; j < item; j++) {
-      display_items_fname_by_char(viewer, j);
-    }
     // find first item in path
     f_closedir(viewer->dir);
     fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
@@ -296,6 +294,12 @@ void FileViewer_leave_directory(FileViewer *viewer) {
         fr_result = f_findnext(viewer->dir, viewer->filinfo);
       } else {
         break;
+      }
+    }
+    if (item != ITEMS) {
+      // clear additional items from last page
+      for (int i = item; i < ITEMS; i++) {
+        display_items_fname_by_char(viewer, i);
       }
     }
     total_items = item;
