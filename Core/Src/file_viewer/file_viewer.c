@@ -65,7 +65,7 @@ static void display_items_fname_by_char(FileViewer *viewer, unsigned int index) 
   }
 }
 
-void FileViewer_scroll_item_horizontally(FileViewer *viewer) {
+void FileViewer_unwrap_item_name(FileViewer *viewer) {
   if (strlen(items_fname[selector_position - SELECTOR_POS_1]) > MAX_ITEM_CHAR) {
     // temporary buffer 1
     char temp[MAX_FILENAME_CHAR];
@@ -393,6 +393,115 @@ void FileViewer_scroll_up(FileViewer *viewer) {
         fr_result = f_findnext(viewer->dir, viewer->filinfo);
         item_pos += 1;
       }
+    }
+  }
+}
+
+void FileViewer_scroll_page_right(FileViewer *viewer) {
+  FRESULT fr_result;
+
+  // scroll page to the next page
+  if (total_items >= ITEMS) {
+    unsigned long int item_pos = 0;
+    // close dir
+    f_closedir(viewer->dir);
+    // find first item in path
+    fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
+    if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
+      item_pos += 1;
+      while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
+        if (item_pos == total_items + 1) {
+          // clear last item selector
+          BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+          BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->display_properties.pFont->Height,
+                                  (uint8_t *) SELECTOR_TYPE,
+                                  LEFT_MODE);
+          // clear items from last path
+          for (int i = 0; i < item; i++) {
+            display_items_fname_by_char(viewer, i);
+          }
+          // set initial selector position
+          selector_position = SELECTOR_POS_1;
+          // display selector on screen
+          BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+          BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->display_properties.pFont->Height,
+                                  (uint8_t *) SELECTOR_TYPE,
+                                  LEFT_MODE);
+          selector_pixel_position.X = (int16_t) SELECTOR_X;
+          selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->display_properties.pFont->Height);
+          // reset items name buffer
+          memset(items_fname, 0, sizeof items_fname);
+          // reset item counter
+          item = 0;
+          while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
+            if (item < ITEMS) {
+              memcpy(items_fname[item], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+              display_items_fname_by_char(viewer, item);
+              item += 1;
+              fr_result = f_findnext(viewer->dir, viewer->filinfo);
+            } else {
+              break;
+            }
+          }
+          total_items += item;
+          break;
+        }
+        fr_result = f_findnext(viewer->dir, viewer->filinfo);
+        item_pos += 1;
+      }
+    }
+  }
+}
+
+void FileViewer_scroll_page_left(FileViewer *viewer) {
+  FRESULT fr_result;
+
+  unsigned long int item_pos = 0;
+  // close dir
+  f_closedir(viewer->dir);
+  // find first item in path
+  fr_result = f_findfirst(viewer->dir, viewer->filinfo, viewer->path, "*");
+  if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
+    item_pos += 1;
+    while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
+      if (item_pos == total_items - (2 * ITEMS) + 1) {
+        // clear last item selector
+        BSP_LCD_SetTextColor(viewer->display_properties.BackColor);
+        BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->display_properties.pFont->Height,
+                                (uint8_t *) SELECTOR_TYPE,
+                                LEFT_MODE);
+        // clear items from last path
+        for (int i = 0; i < item; i++) {
+          display_items_fname_by_char(viewer, i);
+        }
+        // set initial selector position
+        selector_position = SELECTOR_POS_1;
+        // display selector on screen
+        BSP_LCD_SetTextColor(viewer->display_properties.TextColor);
+        BSP_LCD_DisplayStringAt(SELECTOR_X, SELECTOR_POS_1 * viewer->display_properties.pFont->Height,
+                                (uint8_t *) SELECTOR_TYPE,
+                                LEFT_MODE);
+        selector_pixel_position.X = (int16_t) SELECTOR_X;
+        selector_pixel_position.Y = (int16_t) (SELECTOR_POS_1 * viewer->display_properties.pFont->Height);
+        // reset items name buffer
+        memset(items_fname, 0, sizeof items_fname);
+        // reset item counter
+        item = 0;
+        while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
+          if (item < ITEMS) {
+            memcpy(items_fname[item], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+            display_items_fname_by_char(viewer, item);
+            item += 1;
+            fr_result = f_findnext(viewer->dir, viewer->filinfo);
+          } else {
+            break;
+          }
+        }
+        total_items -= item;
+        break;
+      }
+      fr_result = f_findnext(viewer->dir, viewer->filinfo);
+      item_pos += 1;
     }
   }
 }

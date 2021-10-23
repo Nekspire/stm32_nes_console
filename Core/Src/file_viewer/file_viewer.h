@@ -46,6 +46,8 @@ void FileViewer_enter_directory(FileViewer *);
 void FileViewer_leave_directory(FileViewer *);
 void FileViewer_scroll_down(FileViewer *);
 void FileViewer_scroll_up(FileViewer *);
-void FileViewer_scroll_item_horizontally(FileViewer *);
+void FileViewer_unwrap_item_name(FileViewer *viewer);
+void FileViewer_scroll_page_right(FileViewer *);
+void FileViewer_scroll_page_left(FileViewer *);
 
 #endif
