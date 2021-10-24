@@ -150,7 +150,7 @@ bool FileViewer_init(FileViewer *viewer) {
 
         while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
           if (item < ITEMS) {
-            memcpy(items_fname[item], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+            memcpy(items_fname[item], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
             display_items_fname_by_char(viewer, item);
             item += 1;
             fr_result = f_findnext(viewer->dir, viewer->filinfo);
@@ -225,7 +225,7 @@ void FileViewer_enter_directory(FileViewer *viewer) {
     item = 0;
     while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
       if (item < ITEMS) {
-        memcpy(items_fname[item], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+        memcpy(items_fname[item], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
         display_items_fname_by_char(viewer, item);
         item += 1;
         fr_result = f_findnext(viewer->dir, viewer->filinfo);
@@ -302,7 +302,7 @@ void FileViewer_leave_directory(FileViewer *viewer) {
     item = 0;
     while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
       if (item < ITEMS) {
-        memcpy(items_fname[item], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+        memcpy(items_fname[item], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
         display_items_fname_by_char(viewer, item);
         item += 1;
         fr_result = f_findnext(viewer->dir, viewer->filinfo);
@@ -336,7 +336,7 @@ void FileViewer_scroll_down(FileViewer *viewer) {
                             LEFT_MODE);
   } else {
     // we can scroll down
-    if (eof_dir == false && glob >= ITEMS && item == ITEMS) {
+    if (eof_dir == false && item == ITEMS) {
       // auxiliary item position
       unsigned long int loc = 0;
       // find first item in path
@@ -436,7 +436,7 @@ void FileViewer_scroll_page_right(FileViewer *viewer) {
   FRESULT fr_result;
 
   // scroll page right when actual number of items on screen is equal to max number of items on screen
-  if (eof_dir == false && glob >= ITEMS) {
+  if (eof_dir == false && item == ITEMS) {
     // auxiliary item position
     unsigned long int loc = 0;
     // close dir
@@ -467,7 +467,7 @@ void FileViewer_scroll_page_right(FileViewer *viewer) {
           item = 0;
           while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
             if (item < ITEMS) {
-              memcpy(items_fname[item], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+              memcpy(items_fname[item], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
               display_items_fname_by_char(viewer, item);
               item += 1;
               fr_result = f_findnext(viewer->dir, viewer->filinfo);
@@ -529,7 +529,7 @@ void FileViewer_scroll_page_left(FileViewer *viewer) {
           item = 0;
           while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
             if (item < ITEMS) {
-              memcpy(items_fname[item], viewer->filinfo->fname, sizeof(viewer->filinfo->fname));
+              memcpy(items_fname[item], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
               display_items_fname_by_char(viewer, item);
               item += 1;
               fr_result = f_findnext(viewer->dir, viewer->filinfo);
