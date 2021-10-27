@@ -48,6 +48,7 @@ endif ()
 
 include_directories(Core/Inc FATFS/Target FATFS/App Drivers/STM32F4xx_HAL_Driver/Inc Drivers/STM32F4xx_HAL_Driver/Inc/Legacy Middlewares/Third_Party/FatFs/src Drivers/CMSIS/Device/ST/STM32F4xx/Include Drivers/CMSIS/Include)
 include_directories(Core/Src/Lcd Core/Src/Lcd/Fonts)
+include_directories(Core/Src/nes_controller Core/Src/file_viewer)
 
 add_definitions(-DDEBUG -DUSE_HAL_DRIVER -DSTM32F446xx)
 

@@ -16,17 +16,6 @@
 #define NES_BUTTON_SELECT       0x1000
 
 typedef enum {
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN,
-    SELECT,
-    START,
-    B,
-    A,
-}NES_Controller_Button;
-
-typedef enum {
     NES_CONTROLLER_OK,
     NES_CONTROLLER_ERR,
 
@@ -34,6 +23,6 @@ typedef enum {
 
 NES_Controller_Status nes_controller_init(I2C_HandleTypeDef *i2c);
 uint16_t nes_controller_read_code(I2C_HandleTypeDef *i2c);
-bool nes_match_button(uint16_t code, NES_Controller_Button *button);
+bool nes_match_button(uint16_t code, uint16_t NES_Controller_Button);
 
 #endif //NES_CONTROLLER_NES_CONTROLLER_H

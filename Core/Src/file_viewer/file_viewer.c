@@ -556,3 +556,30 @@ void FileViewer_scroll_page_left(FileViewer *viewer) {
     }
   }
 }
+void FileViewer_get_item_name(FileViewer *viewer, char item_name[MAX_FILENAME_CHAR]) {
+  memcpy(item_name, items_fname[selector_position - SELECTOR_POS_1], sizeof(item_name[MAX_FILENAME_CHAR]));
+}
+
+void FileViewer_refresh_screen(FileViewer *viewer) {
+  BSP_LCD_Clear(viewer->items_display_properties.BackColor);
+  // path display properties
+  BSP_LCD_SetFont(viewer->path_display_properties.pFont);
+  BSP_LCD_SetTextColor(viewer->path_display_properties.TextColor);
+  BSP_LCD_DisplayStringAt(0, 0, (uint8_t *) viewer->path, LEFT_MODE);
+  // items display properties
+  BSP_LCD_SetFont(viewer->items_display_properties.pFont);
+  BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
+  if (item > 0) {
+    // display and set selector position
+    BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->items_display_properties.pFont->Height,
+                            (uint8_t *) SELECTOR_TYPE,
+                            LEFT_MODE);
+    // display items
+    for (int i = 0; i < item; i++) {
+      display_items_fname_by_char(viewer, i);
+    }
+  }
+
+
+
+}
