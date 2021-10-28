@@ -1,1 +1,1 @@
-﻿# stm32_sdcard_file_viewer
+﻿# File viewer for sd cards supported by classic NES controller.
