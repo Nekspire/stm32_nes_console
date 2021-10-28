@@ -38,7 +38,7 @@ uint16_t nes_controller_read_code(I2C_HandleTypeDef *i2c) {
 bool nes_match_button(uint16_t code, uint16_t NES_Controller_Button) {
     bool state = false;
 
-    if (code & NES_Controller_Button)
+    if (code == NES_Controller_Button)
         state = true;
 
     return state;

@@ -27,11 +27,17 @@
 // maximum characters of ITEM name in line
 // maximum characters of ITEM name in line is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Width) - 1 (selector char)
 // for ili9486 and font width = 14 it's: (480 / 14)  - 1 = 33
-#define MAX_ITEM_LINECHAR 33
+#define MAX_LINECHAR      33
+// indicator correction, do not modify
+#define MAX_ITEM_LINECHAR (MAX_LINECHAR - (MAX_ITEM_INDCHAR + FREE_SPACE_CHAR))
 // default disc name, it does not impact on path
 #define DRIVE             "DISC:"
 // delay macro
 #define DELAY_MS(x)       HAL_Delay(x)
+// maximum characters of item indicator
+#define MAX_ITEM_INDCHAR    7
+// free space between item name and indicator
+#define FREE_SPACE_CHAR     1
 
 typedef struct {
     FATFS *fs;
