@@ -268,6 +268,9 @@ void FileViewer_enter_directory(FileViewer *viewer) {
     memset(ind_buff, 0, sizeof ind_buff);
     // reset item counter
     item = 0;
+    if (eof_dir == true) {
+      eof_dir = false;
+    }
     while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
       if (item < ITEMS) {
         memcpy(items_fname[item], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
@@ -279,6 +282,9 @@ void FileViewer_enter_directory(FileViewer *viewer) {
       } else {
         break;
       }
+    }
+    if (!viewer->filinfo->fname[0]) {
+      eof_dir = true;
     }
     if (item != ITEMS) {
       // clear additional items from last page
@@ -350,6 +356,9 @@ void FileViewer_leave_directory(FileViewer *viewer) {
     memset(ind_buff, 0, sizeof ind_buff);
     // reset item counter
     item = 0;
+    if (eof_dir == true) {
+      eof_dir = false;
+    }
     while (fr_result == FR_OK && viewer->filinfo->fname[0]) {
       if (item < ITEMS) {
         memcpy(items_fname[item], viewer->filinfo->fname, strlen(viewer->filinfo->fname) + 1);
@@ -361,6 +370,9 @@ void FileViewer_leave_directory(FileViewer *viewer) {
       } else {
         break;
       }
+    }
+    if (!viewer->filinfo->fname[0]) {
+      eof_dir = true;
     }
     if (item != ITEMS) {
       // clear additional items from last page
