@@ -56,14 +56,24 @@ static size_t strlprecat( char* dst, const char * src, size_t size) {
 static void set_indicator(FileViewer *viewer, unsigned int index, BYTE  item_type, FSIZE_t item_size) {
 
   if (item_type & AM_DIR) {
-    sprintf(ind_buff[index], "%s", "DIR");
+    sprintf(ind_buff[index], "%s", " ");
   } else {
-    // calc size in kB
-    unsigned long int size = (unsigned long int) (item_size / 1024);
-    if (size < 1024) {
+    // calc size in according to SI
+    unsigned long int size = (unsigned long int) (item_size / 1000);
+    if (size < 1000) {
       sprintf(ind_buff[index], "%lukB", size);
-    } else {
-      sprintf(ind_buff[index], "%s", ">1024kB");
+    } else  {
+      size /= 1000;
+      if (size < 1000) {
+        sprintf(ind_buff[index], "%luMB", size);
+      } else {
+        size /= 1000;
+        if (size < 1000) {
+          sprintf(ind_buff[index], "%luGB", size);
+        } else {
+          sprintf(ind_buff[index], "%s", ">1000GB");
+        }
+      }
     }
   }
 }
@@ -135,6 +145,7 @@ void FileViewer_unwrap_item_name(FileViewer *viewer) {
 bool FileViewer_init(FileViewer *viewer) {
   FRESULT fr_mount, fr_result;
   uint8_t lcd_result;
+  const char size_header[] = "Size";
 
   lcd_result = BSP_LCD_Init();
 
@@ -159,6 +170,17 @@ bool FileViewer_init(FileViewer *viewer) {
         // items display properties
         BSP_LCD_SetFont(viewer->items_display_properties.pFont);
         BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
+
+        // set name headers
+        BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 - 1) * viewer->items_display_properties.pFont->Height,
+                                (uint8_t *) "Name", LEFT_MODE);
+        for (int i = 0; i < strlen(size_header); i++) {
+          BSP_LCD_DisplayChar(
+                  (MAX_LINECHAR - i) * viewer->items_display_properties.pFont->Width,
+                  (SELECTOR_POS_1 - 1) * viewer->items_display_properties.pFont->Height,
+                  size_header[(strlen(size_header) - 1) - i]);
+        }
+
         if (fr_result == FR_OK && viewer->filinfo->fname[0]) {
           BSP_LCD_DisplayStringAt(SELECTOR_X, 2 * viewer->items_display_properties.pFont->Height,
                                   (uint8_t *) SELECTOR_TYPE,
@@ -610,6 +632,8 @@ void FileViewer_get_item_name(FileViewer *viewer, char item_name[MAX_FILENAME_CH
 }
 
 void FileViewer_refresh_screen(FileViewer *viewer) {
+  const char size_header[] = "Size";
+
   BSP_LCD_Clear(viewer->items_display_properties.BackColor);
   // path display properties
   BSP_LCD_SetFont(viewer->path_display_properties.pFont);
@@ -618,6 +642,15 @@ void FileViewer_refresh_screen(FileViewer *viewer) {
   // items display properties
   BSP_LCD_SetFont(viewer->items_display_properties.pFont);
   BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
+  // set name headers
+  BSP_LCD_DisplayStringAt(item_pixel_x, (SELECTOR_POS_1 - 1) * viewer->items_display_properties.pFont->Height,
+                          (uint8_t *) "Name", LEFT_MODE);
+  for (int i = 0; i < strlen(size_header); i++) {
+    BSP_LCD_DisplayChar(
+            (MAX_LINECHAR - i) * viewer->items_display_properties.pFont->Width,
+            (SELECTOR_POS_1 - 1) * viewer->items_display_properties.pFont->Height,
+            size_header[(strlen(size_header) - 1) - i]);
+  }
   if (item > 0) {
     // display and set selector position
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_position * viewer->items_display_properties.pFont->Height,
