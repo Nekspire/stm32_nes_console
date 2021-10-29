@@ -3,18 +3,30 @@
 #include <stdio.h>
 #include "file_viewer.h"
 
+// information buffer
 char message[30];
+// selector position
 unsigned int selector_position = SELECTOR_POS_1;
+// selector pixel position
 Point selector_pixel_position;
 // global item number in directory
 long unsigned int glob = 0;
 // number of items to end of directory from glob less or equal to max items on display
 unsigned int item = 0;
+// items name buffer
 char items_fname[ITEMS][MAX_FILENAME_CHAR];
+// number of slashes in path
 unsigned int slash = 1;
+// initial item pixel position
 unsigned int item_pixel_x = 0;
+// end of directory flag
 bool eof_dir = false;
+// indicator name buffer
 char ind_buff[ITEMS][MAX_ITEM_INDCHAR];
+// maximum characters of ITEM name in line
+unsigned int MAX_LINECHAR;
+// maximum char items in line with indicator correctio
+unsigned int MAX_ITEM_LINECHAR;
 
 static size_t strlprecat( char* dst, const char * src, size_t size) {
   size_t dstlen = strnlen( dst, size);
@@ -119,7 +131,7 @@ void FileViewer_unwrap_item_name(FileViewer *viewer) {
            sizeof(items_fname[selector_position - SELECTOR_POS_1]));
 
     unsigned int strlen_temp = strlen(temp);
-    int delta = (int) strlen_temp - MAX_ITEM_LINECHAR;
+    int delta = (int) (strlen_temp - MAX_ITEM_LINECHAR);
     // shift left 1 character
     for (int i = 0; i < delta; i++) {
       for (int j = 0; j < strlen_temp; j++) {
@@ -160,6 +172,9 @@ bool FileViewer_init(FileViewer *viewer) {
     fr_mount = f_mount(viewer->fs, viewer->path, 0);
 
     if (fr_mount == FR_OK) {
+      MAX_LINECHAR = (BSP_LCD_GetXSize() / viewer->items_display_properties.pFont->Width) - 1;
+      MAX_ITEM_LINECHAR = (MAX_LINECHAR - (MAX_ITEM_INDCHAR + FREE_SPACE_CHAR));
+
       fr_result = f_getcwd(viewer->path, sizeof(viewer->path));
 
       if (fr_result == FR_OK) {
@@ -393,7 +408,7 @@ void FileViewer_scroll_down(FileViewer *viewer) {
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
 
-    selector_pixel_position.Y += viewer->items_display_properties.pFont->Height;
+    selector_pixel_position.Y += (int16_t) viewer->items_display_properties.pFont->Height;
     selector_position += 1;
 
     BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
@@ -450,7 +465,7 @@ void FileViewer_scroll_up(FileViewer *viewer) {
     BSP_LCD_DisplayStringAt(SELECTOR_X, selector_pixel_position.Y, (uint8_t *) SELECTOR_TYPE,
                             LEFT_MODE);
 
-    selector_pixel_position.Y -= viewer->items_display_properties.pFont->Height;
+    selector_pixel_position.Y -= (int16_t) viewer->items_display_properties.pFont->Height;
     selector_position -= 1;
 
     BSP_LCD_SetTextColor(viewer->items_display_properties.TextColor);
@@ -674,7 +689,4 @@ void FileViewer_refresh_screen(FileViewer *viewer) {
       display_indicator(viewer, i);
     }
   }
-
-
-
 }

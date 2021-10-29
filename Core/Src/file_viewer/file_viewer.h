@@ -14,31 +14,41 @@
 #define MAX_FILENAME_CHAR 13
 #endif
 
+/* selector type character
+ * leave default if you want
+ * */
 #define SELECTOR_TYPE     ">"
-// maximum characters in path
-// initial selector position line
+/* maximum characters in path, initial selector position line
+ * leave default if you want
+ * */
 #define SELECTOR_POS_1    2
-// selector x coordinate position
+/* selector x coordinate position
+ * leave default if you want
+ * */
 #define SELECTOR_X        0
-// maximum items on display
-// maximum items on display is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Height) - SELECTOR_POS_1
-// for ili9486 and font height = 16 it's: (320 / 16) - 2 = 18
+/* maximum items on display
+ * this need to be calculated and set manually
+ * maximum items on display is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Height) - SELECTOR_POS_1
+   for ili9486 and font height = 16 it's: (320 / 16) - 2 = 18 */
 #define ITEMS             14
-// maximum characters of ITEM name in line
-// maximum characters of ITEM name in line is equal to: (DISP_X_SIZE or DISP_X_SIZE / pFont->Width) - 1 (selector char)
-// for ili9486 and font width = 14 it's: (480 / 14)  - 1 = 33
-#define MAX_LINECHAR      33
-// default disc name, it does not impact on path
+/* default disc name, it does not impact on path
+ * leave default if you want
+ * */
 #define DRIVE             "DISC"
-// delay macro
+/* delay macro
+ * this need to be specified and set manually
+ * */
 #define DELAY_MS(x)       HAL_Delay(x)
-// maximum characters of item indicator
-#define MAX_ITEM_INDCHAR    7
-// free space between item name and indicator
-#define FREE_SPACE_CHAR     1
-// maximum char items in line with indicator correction, do not modify
-#define MAX_ITEM_LINECHAR (MAX_LINECHAR - (MAX_ITEM_INDCHAR + FREE_SPACE_CHAR))
+/* maximum characters of item indicator
+ * leave default if you want*/
+#define MAX_ITEM_INDCHAR  7
+/* free space between item name and indicator
+ * lave default if you want*/
+#define FREE_SPACE_CHAR   1
 
+/*FileViewer configuration type
+ *
+ * */
 typedef struct {
     FATFS *fs;
     DIR *dir;
@@ -48,15 +58,25 @@ typedef struct {
     LCD_DrawPropTypeDef items_display_properties;
 } FileViewer;
 
+/* initialization function */
 bool FileViewer_init(FileViewer *);
+/* open directory and display it's path and items */
 void FileViewer_enter_directory(FileViewer *);
+/* close actual directory and display previous directory */
 void FileViewer_leave_directory(FileViewer *);
+/* scroll down inside directory */
 void FileViewer_scroll_down(FileViewer *);
+/* scroll up inside directory */
 void FileViewer_scroll_up(FileViewer *);
+/* show full name of item */
 void FileViewer_unwrap_item_name(FileViewer *);
+/* scroll one page forward inside directory */
 void FileViewer_scroll_page_right(FileViewer *);
+/* scroll one page backward inside directory*/
 void FileViewer_scroll_page_left(FileViewer *);
+/* get current item name */
 void FileViewer_get_item_name(FileViewer *, char item_name[MAX_FILENAME_CHAR]);
+/* refresh view in directory */
 void FileViewer_refresh_screen(FileViewer *);
 
 #endif

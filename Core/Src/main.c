@@ -26,7 +26,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stm32_adafruit_lcd.h"
 #include "nes_controller.h"
 #include "file_viewer.h"
 /* USER CODE END Includes */
