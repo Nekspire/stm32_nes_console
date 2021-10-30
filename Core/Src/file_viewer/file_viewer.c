@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 #include "file_viewer.h"
@@ -142,7 +141,7 @@ void FileViewer_unwrap_item_name(FileViewer *viewer) {
                             selector_position * viewer->items_display_properties.pFont->Height,
                             temp[j]);
       }
-      DELAY_MS(15);
+      DELAY_MS(UNWRAP_TIME);
     }
     DELAY_MS(500);
     // directly back to initial position

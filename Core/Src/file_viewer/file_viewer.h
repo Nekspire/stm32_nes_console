@@ -5,6 +5,7 @@
 #include <ffconf.h>
 #include <fonts.h>
 #include <stm32_adafruit_lcd.h>
+#include <stdbool.h>
 
 #if _USE_LFN
 #define MAX_PATH_CHAR     (5 * (_MAX_LFN + 1))
@@ -45,6 +46,8 @@
 /* free space between item name and indicator
  * lave default if you want*/
 #define FREE_SPACE_CHAR   1
+/* Item unwrapping speed in ms*/
+#define UNWRAP_TIME       30
 
 /*FileViewer configuration type
  *
