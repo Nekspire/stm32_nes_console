@@ -21,7 +21,8 @@
   ![](img/IMG_20211029_172232.jpg)
     #### Long file name
   ![](img/IMG_20211029_172021.jpg)
-File Viewer also works on lower size ILI9341 display.
+  
+  File Viewer also works on lower size ILI9341 display.
     #### Short file name
   ![](img/IMG_20211030_132259.jpg)
     #### Long file name
